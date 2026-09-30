@@ -309,7 +309,7 @@ const isActive=o=>!['Done','Cancelled'].includes(o.status);
 const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'})};
 const img=(e,c,size)=>`<div class="img" style="--c1:${COLORS[c][0]};--c2:${COLORS[c][1]}" aria-hidden="true"><i${size?` style="font-size:${size}"`:''}>${e}</i></div>`;
 function toast(msg){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600);}
-function modal(html){const o=$('#overlay');o.innerHTML=`<div class="modal-bg" data-action="close-modal"><div class="modal" role="dialog" aria-modal="true" onclick="event.stopPropagation()">${html}</div></div>`;const f=o.querySelector('button');f&&f.focus();}
+function modal(html){const o=$('#overlay');o.innerHTML=`<div class="modal-bg" data-action="close-modal"><div class="modal" role="dialog" aria-modal="true" data-action="noop">${html}</div></div>`;const f=o.querySelector('button');f&&f.focus();}
 const closeModal=()=>{$('#overlay').innerHTML='';};
 const stallBadges=s=>[
   s.open?'<span class="badge green">● Open</span>':`<span class="badge red">Closed · opens ${s.opens}</span>`,
@@ -379,6 +379,7 @@ function Home(){
 /* ---- Screen 2: Menu (categories + item cards) ---- */
 function Menu(sid){
   const s=stallOf(sid); if(!s)return notFound();
+  draft=null; // leaving Item Details discards its unsaved selection
   const items=MENUS[sid].filter(i=>!S.menuVegOnly||i.veg);
   const cats=['All',...new Set(MENUS[sid].map(i=>i.cat))];
   const cat=cats.includes(S.menuCat)?S.menuCat:'All';
@@ -674,6 +675,7 @@ const actions={
   },
   'replace-cart':()=>{S.cart={stallId:null,lines:[],note:''};closeModal();commitDraft();},
   'close-modal':()=>closeModal(),
+  'noop':()=>{},
   'cq':(v,el)=>{const l=S.cart.lines[+el.dataset.i];l.qty+=+v;if(l.qty<1)l.qty=1;if(l.qty>20)l.qty=20;save();render(true);},
   'remove':(v,el)=>{S.cart.lines.splice(+el.dataset.i,1);if(!S.cart.lines.length)S.cart.stallId=null;save();render(true);},
   'clear-cart':()=>modal(`<h2>Clear cart?</h2><p class="muted" style="margin:8px 0 16px">All items will be removed.</p><div class="stack"><button class="btn danger block" data-action="do-clear">Yes, clear cart</button><button class="btn ghost block" data-action="close-modal">Keep items</button></div>`),
@@ -709,8 +711,9 @@ const updDraft=()=>{const b=$('#addbtn');if(b)b.textContent='Add to cart · '+mo
 
 document.addEventListener('click',e=>{
   const n=e.target.closest('[data-nav]');if(n){go(n.dataset.nav);return;}
-  const a=e.target.closest('[data-action]');if(a&&actions[a.dataset.action]){e.preventDefault();actions[a.dataset.action](a.dataset.v,a);}
+  const a=e.target.closest('[data-action]');if(a&&actions[a.dataset.action]){if(a.dataset.action==='close-modal'&&e.target!==a)return;e.preventDefault();actions[a.dataset.action](a.dataset.v,a);}
 });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 document.addEventListener('input',e=>{
   const t=e.target;
   if(t.id==='q'){S.filters.q=t.value;$('#stall-list').innerHTML=stallListHTML();}
