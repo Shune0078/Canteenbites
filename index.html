@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CanteenBites – School Canteen Ordering</title>
+<meta name="description" content="Order from your school canteen: dine-in, pickup or delivery.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   CanteenBites – design tokens
+   Palette: warm orange + cream. Type: Quicksand (headings) / Nunito (body).
+   ========================================================================== */
+:root{
+  --cream:#FFF6E9; --cream-2:#FFEBD0; --card:#FFFFFF;
+  --orange:#E8590C; --orange-d:#C24A08; --orange-l:#FFE3D0;
+  --brown:#3B2416; --muted:#75604F; --line:#EBD9C3;
+  --green:#2B8A3E; --green-l:#DFF3E3; --red:#C92A2A; --red-l:#FDE3E3;
+  --amber:#8F5A00; --amber-l:#FFEFC2; --blue:#1C6FB5; --blue-l:#DCEEFB;
+  --r:16px; --shadow:0 2px 10px rgba(90,50,10,.09);
+  --nav-h:68px;
+  --font-h:'Quicksand','Nunito',ui-rounded,'SF Pro Rounded',system-ui,sans-serif;
+  --font-b:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--cream);color:var(--brown);font:400 1rem/1.5 var(--font-b);
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));}
+h1,h2,h3{font-family:var(--font-h);margin:0;line-height:1.2}
+h1{font-size:1.6rem} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.muted{color:var(--muted)} .small{font-size:.875rem} .bold{font-weight:800}
+.row{display:flex;align-items:center;gap:10px} .between{justify-content:space-between}
+.grow{flex:1;min-width:0} .stack>*+*{margin-top:12px} .wrap{flex-wrap:wrap}
+
+/* ---------- Layout shell ---------- */
+.app-header{position:sticky;top:0;z-index:20;background:var(--orange);color:#fff}
+.app-header .in{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:16px}
+.brand{font:800 1.35rem var(--font-h);display:flex;align-items:center;gap:8px;color:#fff;text-decoration:none}
+.brand span.logo{width:34px;height:34px;border-radius:10px;background:#fff;display:grid;place-items:center;font-size:1.2rem}
+.top-nav{display:none;margin-left:auto;gap:6px}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.screen-label{display:inline-block;font:800 .75rem var(--font-b);letter-spacing:.08em;text-transform:uppercase;
+  background:var(--brown);color:#fff;padding:3px 10px;border-radius:99px;margin-bottom:10px}
+
+/* Bottom nav (mobile) → top nav (desktop) */
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:1;min-height:56px;
+  color:var(--muted);text-decoration:none;font-weight:800;font-size:.8rem;position:relative;border-radius:12px}
+.nav a .ic{font-size:1.4rem;line-height:1}
+.nav a[aria-current="page"]{color:var(--orange-d);background:var(--orange-l)}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding:6px 8px env(safe-area-inset-bottom);background:#fff;border-top:1px solid var(--line);display:flex;gap:4px;z-index:30}
+.badge-dot{position:absolute;top:2px;right:calc(50% - 26px);background:var(--red);color:#fff;border-radius:99px;
+  font-size:.7rem;min-width:20px;height:20px;display:grid;place-items:center;padding:0 5px}
+@media(min-width:768px){
+  body{padding-bottom:0}
+  .bottom-nav{display:none}
+  .top-nav{display:flex}
+  .top-nav a{flex-direction:row;color:#fff;padding:8px 14px;min-height:44px;gap:8px;font-size:1rem}
+  .top-nav a[aria-current="page"]{background:#fff;color:var(--orange-d)}
+  .top-nav .badge-dot{position:static}
+}
+
+/* ---------- Components ---------- */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;border:1px solid var(--line)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 20px;border-radius:14px;
+  border:2px solid var(--orange);background:var(--orange);color:#fff;font-weight:800;text-decoration:none}
+.btn:hover{background:var(--orange-d);border-color:var(--orange-d)}
+.btn.ghost{background:#fff;color:var(--orange-d)} .btn.ghost:hover{background:var(--orange-l)}
+.btn.danger{background:#fff;color:var(--red);border-color:var(--red)} .btn.danger:hover{background:var(--red-l)}
+.btn.block{width:100%} .btn.sm{min-height:40px;padding:6px 14px;font-size:.9rem}
+.btn[disabled]{background:#E7DACB;border-color:#E7DACB;color:#7d6a5a;cursor:not-allowed}
+.back{background:none;border:0;color:var(--orange-d);font-weight:800;min-height:44px;padding:0 8px 0 0;margin-bottom:4px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;font-weight:800;padding:2px 9px;border-radius:99px;background:var(--cream-2);color:var(--brown)}
+.badge.green{background:var(--green-l);color:#1E6B2E} .badge.red{background:var(--red-l);color:#A61E1E}
+.badge.amber{background:var(--amber-l);color:var(--amber)} .badge.blue{background:var(--blue-l);color:#14548A}
+.chip{min-height:44px;padding:6px 16px;border-radius:99px;border:2px solid var(--line);background:#fff;font-weight:700;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--orange);border-color:var(--orange);color:#fff}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.field{display:block} .field>span{display:block;font-weight:800;margin-bottom:4px}
+input[type=text],input[type=search],select,textarea{width:100%;min-height:48px;padding:10px 14px;border:2px solid var(--line);
+  border-radius:12px;background:#fff}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--orange)}
+.notice{border-radius:12px;padding:10px 14px;font-weight:700;display:flex;gap:10px;align-items:flex-start}
+.notice.amber{background:var(--amber-l);color:var(--amber)} .notice.red{background:var(--red-l);color:#A61E1E}
+.notice.green{background:var(--green-l);color:#1E6B2E} .notice.blue{background:var(--blue-l);color:#14548A}
+.hr{height:1px;background:var(--line);border:0;margin:12px 0}
+.grid{display:grid;gap:14px}
+.qty{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:99px;background:#fff}
+.qty button{width:44px;height:44px;border:0;background:none;font-size:1.4rem;font-weight:800;color:var(--orange-d);border-radius:99px}
+.qty output{min-width:28px;text-align:center;font-weight:800}
+
+/* Image placeholders (gradient + emoji, no external images) */
+.img{display:grid;place-items:center;background:linear-gradient(135deg,var(--c1),var(--c2));position:relative;overflow:hidden}
+.img::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 25% 20%,rgba(255,255,255,.35),transparent 55%)}
+.img i{font-style:normal;position:relative;z-index:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.18))}
+.logo-s{width:52px;height:52px;border-radius:50%;border:3px solid #fff;box-shadow:var(--shadow);font-size:1.6rem;flex:none}
+
+/* Stall cards */
+.stall{padding:0;overflow:hidden;display:flex;flex-direction:column;cursor:pointer}
+.stall .img{height:120px;font-size:3.2rem}
+.stall .body{padding:12px 14px 14px;position:relative}
+.stall .body .logo-s{position:absolute;top:-28px;right:14px;height:52px}
+.stall.closed .img{filter:grayscale(1) opacity(.6)}
+.stall-link{all:unset;display:block;cursor:pointer;border-radius:var(--r)}
+.stall-link:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+@media(min-width:600px){.grid.stalls{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:960px){.grid.stalls{grid-template-columns:repeat(3,1fr)}}
+
+/* Menu items */
+.item{display:flex;gap:12px;align-items:stretch;padding:12px}
+.item .img{width:92px;min-height:92px;border-radius:14px;font-size:2.6rem;flex:none}
+.item.sold .img{filter:grayscale(1) opacity(.55)}
+.item.sold .name{color:var(--muted)}
+.veg-dot{display:inline-block;width:14px;height:14px;border:2px solid var(--green);border-radius:3px;position:relative;vertical-align:middle}
+.veg-dot::after{content:"";position:absolute;inset:2px;background:var(--green);border-radius:50%}
+.nonveg-dot{border-color:var(--red)} .nonveg-dot::after{background:var(--red)}
+@media(min-width:800px){.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.menu-grid>*+*{margin-top:0!important}}
+
+/* Choice rows (options, table grid, slots) */
+.choice{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}
+.choice input{width:22px;height:22px;accent-color:var(--orange);flex:none}
+.choice:has(input:checked){border-color:var(--orange);background:var(--orange-l)}
+.choice:has(input:focus-visible){outline:3px solid var(--blue)}
+.choice.off{opacity:.5;cursor:not-allowed}
+.pills{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.pill{position:relative}
+.pill input{position:absolute;opacity:0;inset:0;cursor:pointer;width:100%;height:100%;margin:0}
+.pill span{display:flex;align-items:center;justify-content:center;flex-direction:column;min-height:52px;border:2px solid var(--line);
+  border-radius:12px;background:#fff;font-weight:800;text-align:center;padding:4px}
+.pill input:checked+span{background:var(--orange);border-color:var(--orange);color:#fff}
+.pill input:focus-visible+span{outline:3px solid var(--blue);outline-offset:2px}
+.pill input:disabled+span{background:#F1E7DA;color:#9a8878;text-decoration:line-through;cursor:not-allowed}
+.mode-card{display:flex;gap:12px;align-items:center;padding:14px;border:2px solid var(--line);border-radius:var(--r);background:#fff;cursor:pointer}
+.mode-card input{width:22px;height:22px;accent-color:var(--orange)}
+.mode-card:has(input:checked){border-color:var(--orange);background:var(--orange-l)}
+.mode-card:has(input:focus-visible){outline:3px solid var(--blue)}
+.mode-card .ic{font-size:2rem}
+
+/* Sticky action bar */
+.actionbar{position:sticky;bottom:calc(var(--nav-h) + 8px);background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 -2px 14px rgba(90,50,10,.15);padding:12px;margin-top:16px;z-index:10}
+@media(min-width:768px){.actionbar{bottom:12px}}
+
+/* Two-column layouts for wide screens */
+.cols{display:grid;gap:16px}
+@media(min-width:900px){.cols.two{grid-template-columns:1.6fr 1fr;align-items:start}.cols .side{position:sticky;top:76px}}
+
+/* Tracker */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center}
+.steps li{position:relative;font-weight:800;font-size:.85rem;color:var(--muted)}
+.steps li .dot{width:40px;height:40px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;background:#fff;border:3px solid var(--line);position:relative;z-index:1;font-size:1.1rem}
+.steps li::before{content:"";position:absolute;top:19px;left:-50%;width:100%;height:4px;background:var(--line)}
+.steps li:first-child::before{display:none}
+.steps li.done{color:var(--green)} .steps li.done .dot{background:var(--green);border-color:var(--green);color:#fff}
+.steps li.done::before,.steps li.now::before{background:var(--green)}
+.steps li.now{color:var(--orange-d)} .steps li.now .dot{border-color:var(--orange);background:var(--orange-l);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(232,89,12,.18)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+.qr{width:150px;height:150px;background:#fff;padding:8px;border:2px solid var(--brown);border-radius:12px}
+.ordnum{font:800 2rem var(--font-h);letter-spacing:.04em}
+
+/* Owner dashboard */
+.orders-board{display:grid;gap:14px}
+@media(min-width:700px){.orders-board{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1050px){.orders-board{grid-template-columns:repeat(3,1fr)}}
+.oc{border-left:6px solid var(--orange)}
+.oc[data-s="Ready"]{border-left-color:var(--green)} .oc[data-s="Preparing"]{border-left-color:var(--blue)}
+.oc[data-s="Collected"],.oc[data-s="Delivered"],.oc[data-s="Cancelled"]{border-left-color:#B9A896;opacity:.85}
+.table{width:100%;border-collapse:collapse}
+.table td,.table th{padding:6px 0;text-align:left;vertical-align:top}
+
+/* Modal + toast */
+.modal-bg{position:fixed;inset:0;background:rgba(40,20,5,.55);z-index:60;display:grid;place-items:center;padding:16px}
+.modal{background:#fff;border-radius:20px;max-width:440px;width:100%;padding:20px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 86px);background:var(--brown);color:#fff;padding:12px 20px;border-radius:99px;font-weight:700;z-index:70;max-width:90vw;box-shadow:var(--shadow)}
+@media(min-width:768px){.toast{bottom:28px}}
+.hero{background:linear-gradient(135deg,var(--orange),#F59F00);color:#fff;border-radius:22px;padding:20px;margin-bottom:16px}
+.hero p{opacity:.95}
+.empty{text-align:center;padding:36px 16px}
+.empty .big{font-size:3rem}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="in">
+    <a class="brand" href="#/home" aria-label="CanteenBites home"><span class="logo" aria-hidden="true">🍴</span>CanteenBites</a>
+    <nav class="nav top-nav" id="top-nav" aria-label="Main"></nav>
+  </div>
+</header>
+<main id="app" tabindex="-1" aria-live="polite"></main>
+<nav class="nav bottom-nav" id="bottom-nav" aria-label="Main"></nav>
+<div id="overlay"></div>
+
+<script>
+/* ==========================================================================
+   1. MOCK DATA  (no backend – everything lives in memory / localStorage)
+   ========================================================================== */
+const COLORS = [['#FFB347','#E8590C'],['#8FD694','#2B8A3E'],['#FFD166','#F08C00'],['#FF8787','#C92A2A'],['#F3A6D0','#C2255C'],['#FFC078','#D9480F']];
+// Stall: wait = current wait in minutes; peak = long-queue warning; open = accepting orders
+const STALLS = [
+  {id:'s1',name:'Spice Route',cuisine:'Indian',e:'🍛',halal:true, price:2,open:true, wait:25,peak:true, tag:'Curries, biryani & wraps',c:0},
+  {id:'s2',name:'Green Bowl', cuisine:'Healthy',e:'🥗',halal:true, price:2,open:true, wait:8, peak:false,tag:'Salads, bowls & smoothies',c:1},
+  {id:'s3',name:'Noodle House',cuisine:'Asian',e:'🍜',halal:false,price:1,open:true, wait:30,peak:true, tag:'Ramen, fried rice & dumplings',c:2},
+  {id:'s4',name:'Burger Barn',cuisine:'Western',e:'🍔',halal:true,price:2,open:false,wait:0, peak:false,tag:'Burgers, fries & shakes',c:3,opens:'11:00 AM'},
+  {id:'s5',name:'Sweet Stop', cuisine:'Desserts',e:'🧋',halal:true, price:1,open:true, wait:5, peak:false,tag:'Bubble tea, cakes & ice cream',c:4},
+  {id:'s6',name:'Pizza Corner',cuisine:'Italian',e:'🍕',halal:false,price:3,open:true, wait:15,peak:false,tag:'Wood-fired pizza & pasta',c:5},
+];
+const CUISINES = ['All','Indian','Healthy','Asian','Western','Desserts','Italian'];
+
+// Item helper: I(id,name,desc,price,category,emoji,veg,{soldOut,opts,add})
+// opts = required single-choice groups [{g,c:[[label,extra]]}], add = optional add-ons [[label,price]]
+const I=(id,n,d,p,cat,e,veg,x={})=>({id,n,d,p,cat,e,veg,...x});
+const SIZE={g:'Size',c:[['Regular',0],['Large',1.5]]};
+const MENUS = {
+  s1:[I('a1','Butter Chicken','Creamy tomato gravy with tender chicken',6.5,'Mains','🍛',false,{opts:[{g:'Spice level',c:[['Mild',0],['Medium',0],['Hot',0]]}],add:[['Extra naan',1],['Raita',0.8]]}),
+      I('a2','Paneer Tikka Masala','Grilled paneer in spiced gravy',6,'Mains','🧀',true,{opts:[{g:'Spice level',c:[['Mild',0],['Medium',0],['Hot',0]]}],add:[['Extra naan',1]]}),
+      I('a3','Chicken Biryani','Fragrant basmati rice, slow-cooked',7,'Mains','🍚',false,{soldOut:true}),
+      I('a4','Veg Kathi Wrap','Roasted veggies in a flaky paratha',4.5,'Wraps','🌯',true,{add:[['Cheese',0.7]]}),
+      I('a5','Chicken Kathi Wrap','Spiced chicken, onions & mint chutney',5,'Wraps','🌯',false),
+      I('a6','Mango Lassi','Chilled yoghurt & mango',2.8,'Drinks','🥭',true,{opts:[SIZE]}),
+      I('a7','Masala Chai','Hot spiced milk tea',1.5,'Drinks','☕',true)],
+  s2:[I('b1','Rainbow Power Bowl','Quinoa, avocado, chickpeas, greens',6.8,'Bowls','🥗',true,{opts:[{g:'Dressing',c:[['Lemon tahini',0],['Balsamic',0],['Yoghurt herb',0]]}],add:[['Grilled chicken',2],['Extra avocado',1.2]]}),
+      I('b2','Chicken Caesar Salad','Romaine, parmesan, croutons',6.2,'Salads','🥬',false),
+      I('b3','Falafel Bowl','Crispy falafel, hummus, pickles',6,'Bowls','🧆',true,{soldOut:true}),
+      I('b4','Berry Blast Smoothie','Mixed berries, banana, oat milk',3.8,'Smoothies','🫐',true,{opts:[SIZE]}),
+      I('b5','Green Detox Juice','Apple, spinach, cucumber, lime',3.5,'Smoothies','🥒',true,{opts:[SIZE]})],
+  s3:[I('c1','Tonkotsu Ramen','Rich pork broth, egg, spring onion',7.5,'Noodles','🍜',false,{opts:[{g:'Noodle firmness',c:[['Soft',0],['Regular',0],['Firm',0]]}],add:[['Extra egg',1],['Extra noodles',1.5]]}),
+      I('c2','Veggie Ramen','Miso broth, tofu, mushrooms',6.5,'Noodles','🍲',true,{add:[['Extra tofu',1]]}),
+      I('c3','Egg Fried Rice','Wok-tossed rice, egg & veggies',4.8,'Rice','🍳',false,{add:[['Fried egg',0.8]]}),
+      I('c4','Pork Dumplings (6)','Pan-fried with dipping sauce',4.2,'Sides','🥟',false),
+      I('c5','Veg Spring Rolls (4)','Crispy rolls, sweet chilli dip',3.5,'Sides','🥢',true)],
+  s4:[I('d1','Classic Cheeseburger','Beef patty, cheddar, pickles',5.9,'Burgers','🍔',false,{add:[['Bacon',1.5],['Extra patty',2.5]]}),
+      I('d2','Veggie Burger','Black-bean patty, lettuce, tomato',5.5,'Burgers','🍔',true),
+      I('d3','Crispy Fries','Salted, golden',2.5,'Sides','🍟',true,{opts:[SIZE]}),
+      I('d4','Chocolate Shake','Thick and creamy',3.6,'Drinks','🥤',true)],
+  s5:[I('e1','Brown Sugar Bubble Tea','Milk tea with tapioca pearls',3.8,'Drinks','🧋',true,{opts:[SIZE,{g:'Sweetness',c:[['50%',0],['75%',0],['100%',0]]}],add:[['Extra pearls',0.6]]}),
+      I('e2','Matcha Latte','Ceremonial matcha, oat milk optional',3.9,'Drinks','🍵',true,{opts:[SIZE]}),
+      I('e3','Chocolate Fudge Cake','Warm slice with cream',3.2,'Desserts','🍰',true,{soldOut:true}),
+      I('e4','Strawberry Ice Cream','Two scoops in a cup',2.6,'Desserts','🍨',true,{add:[['Sprinkles',0.4]]}),
+      I('e5','Glazed Donut','Fresh every morning',1.8,'Desserts','🍩',true)],
+  s6:[I('f1','Margherita Pizza','Tomato, mozzarella, basil',7.2,'Pizza','🍕',true,{opts:[{g:'Size',c:[['Personal (8")',0],['Medium (10")',3]]}],add:[['Extra cheese',1],['Olives',0.8]]}),
+      I('f2','Pepperoni Pizza','Loaded with pepperoni',8.4,'Pizza','🍕',false,{opts:[{g:'Size',c:[['Personal (8")',0],['Medium (10")',3]]}],add:[['Extra cheese',1]]}),
+      I('f3','Penne Arrabbiata','Spicy tomato sauce',6.4,'Pasta','🍝',true),
+      I('f4','Chicken Alfredo','Creamy garlic sauce',7.4,'Pasta','🍝',false),
+      I('f5','Garlic Bread (4)','Buttery & toasted',2.9,'Sides','🥖',true)],
+};
+// Ordering-mode options
+const TABLES = Array.from({length:12},(_,i)=>({n:'T'+(i+1),taken:[2,5,9].includes(i+1)}));
+const PICKUP_SLOTS = [['12:10',0],['12:20',0],['12:30',1],['12:40',0],['12:50',0],['1:00',0],['1:10',1],['1:20',0]]; // [label, full?]
+const DROPOFFS = {'Classroom':['Block A','Block B','Block C'],'Library':['Ground floor','Study hall'],'Hostel block':['Hostel A','Hostel B','Hostel C']};
+const DELIVERY_SLOTS = [['12:30',0],['12:45',0],['1:00',1],['1:15',0],['1:30',0]];
+const DELIVERY_FEE = 1;
+const STATUS = ['Received','Preparing','Ready','Done']; // "Done" is shown as Collected or Delivered
+const MODES = {
+  dinein:{name:'Dine-in',ic:'🍽️',desc:'Eat at the canteen. We bring food to your table or notify you.'},
+  pickup:{name:'Pickup',ic:'🛍️',desc:'Choose a time slot and collect at the stall with your order number or QR.'},
+  delivery:{name:'Delivery (takeaway)',ic:'🛵',desc:'We bring it to a drop-off point on campus. +$'+DELIVERY_FEE.toFixed(2)},
+};
+
+/* ==========================================================================
+   2. STATE  (persisted lightly in localStorage; safe if storage is blocked)
+   ========================================================================== */
+const KEY='canteenbites.v1';
+const seedOrders=()=>[
+  {id:'CB-1040',stallId:'s1',mode:'pickup',info:{slot:'12:20'},lines:[{key:'a2',itemId:'a2',name:'Paneer Tikka Masala',opts:'Medium',unit:6,qty:1},{key:'a6',itemId:'a6',name:'Mango Lassi',opts:'Regular',unit:2.8,qty:1}],note:'',total:8.8,status:'Received',placed:Date.now()-2*60000,mine:false,cust:'Aisha K.'},
+  {id:'CB-1041',stallId:'s1',mode:'dinein',info:{table:'T4',notify:true},lines:[{key:'a1',itemId:'a1',name:'Butter Chicken',opts:'Hot',unit:6.5,qty:2}],note:'No coriander please',total:13,status:'Preparing',placed:Date.now()-9*60000,mine:false,cust:'Mr. Rao (staff)'},
+  {id:'CB-1039',stallId:'s1',mode:'delivery',info:{point:'Library',detail:'Study hall',time:'12:45'},lines:[{key:'a4',itemId:'a4',name:'Veg Kathi Wrap',opts:'',unit:4.5,qty:3}],note:'',total:14.5,status:'Ready',placed:Date.now()-16*60000,mine:false,cust:'Ben T.'},
+  // Past orders for this user (Order History)
+  {id:'CB-0988',stallId:'s3',mode:'pickup',info:{slot:'1:00'},lines:[{key:'c1',itemId:'c1',name:'Tonkotsu Ramen',opts:'Firm',unit:7.5,qty:1},{key:'c5',itemId:'c5',name:'Veg Spring Rolls (4)',opts:'',unit:3.5,qty:1}],note:'',total:11,status:'Done',placed:Date.now()-2*86400000,mine:true,cust:'You'},
+  {id:'CB-0961',stallId:'s5',mode:'delivery',info:{point:'Classroom',detail:'Block B',time:'12:30'},lines:[{key:'e1',itemId:'e1',name:'Brown Sugar Bubble Tea',opts:'Large, 50%',unit:5.3,qty:2}],note:'',total:11.6,status:'Done',placed:Date.now()-5*86400000,mine:true,cust:'You'},
+  {id:'CB-0902',stallId:'s6',mode:'dinein',info:{table:'T7',notify:true},lines:[{key:'f1',itemId:'f1',name:'Margherita Pizza',opts:'Personal (8")',unit:7.2,qty:1}],note:'',total:7.2,status:'Cancelled',placed:Date.now()-9*86400000,mine:true,cust:'You'},
+];
+let S={
+  filters:{q:'',cuisine:'All',halal:false,veg:false,price:0},
+  menuVegOnly:false, menuCat:'All',
+  cart:{stallId:null,lines:[],note:''},
+  co:{mode:null,table:null,slot:null,point:'',detail:'',dtime:null,notify:true},
+  pay:'wallet', ownerStall:'s1', ownerTab:'Active', nextId:1042, orders:seedOrders(),
+};
+try{const raw=localStorage.getItem(KEY); if(raw) S={...S,...JSON.parse(raw)};}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+let draft=null; // in-progress Item Details selection
+
+/* ==========================================================================
+   3. HELPERS
+   ========================================================================== */
+const $=(s,r=document)=>r.querySelector(s);
+const money=n=>'$'+n.toFixed(2);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const stallOf=id=>STALLS.find(s=>s.id===id);
+const itemOf=(sid,iid)=>MENUS[sid].find(i=>i.id===iid);
+const cartCount=()=>S.cart.lines.reduce((a,l)=>a+l.qty,0);
+const cartSub=()=>S.cart.lines.reduce((a,l)=>a+l.qty*l.unit,0);
+const priceSym=n=>'$'.repeat(n);
+const doneLabel=o=>o.mode==='delivery'?'Delivered':'Collected';
+const statusLabel=o=>o.status==='Done'?doneLabel(o):o.status;
+const isActive=o=>!['Done','Cancelled'].includes(o.status);
+const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'})};
+const img=(e,c,size)=>`<div class="img" style="--c1:${COLORS[c][0]};--c2:${COLORS[c][1]}" aria-hidden="true"><i${size?` style="font-size:${size}"`:''}>${e}</i></div>`;
+function toast(msg){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600);}
+function modal(html){const o=$('#overlay');o.innerHTML=`<div class="modal-bg" data-action="close-modal"><div class="modal" role="dialog" aria-modal="true" onclick="event.stopPropagation()">${html}</div></div>`;const f=o.querySelector('button');f&&f.focus();}
+const closeModal=()=>{$('#overlay').innerHTML='';};
+const stallBadges=s=>[
+  s.open?'<span class="badge green">● Open</span>':`<span class="badge red">Closed · opens ${s.opens}</span>`,
+  s.open&&s.peak?`<span class="badge amber">⏱ Peak hour · ~${s.wait} min wait</span>`:s.open?`<span class="badge">~${s.wait} min wait</span>`:'',
+  s.halal?'<span class="badge blue">Halal</span>':''].join(' ');
+// Tiny deterministic QR-style pattern (visual placeholder, not a real QR code)
+function qrSVG(seed){
+  let h=0;for(const ch of seed)h=(h*31+ch.charCodeAt(0))>>>0;
+  const N=21,cells=[];
+  const finder=(x,y)=>(x<8&&y<8)||(x>N-9&&y<8)||(x<8&&y>N-9);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    let on;
+    if(finder(x,y)){const fx=x<8?x:x-(N-8),fy=y<8?y:y-(N-8);const d=Math.max(Math.abs(fx-3),Math.abs(fy-3));on=d===3||d<=1;if(fx===7||fy===7)on=false;}
+    else{h=(h*1103515245+12345)>>>0;on=(h>>>16)&1;}
+    if(on)cells.push(`<rect x="${x}" y="${y}" width="1" height="1"/>`);
+  }
+  return `<svg class="qr" viewBox="0 0 ${N} ${N}" role="img" aria-label="Pickup QR code for order ${seed}" shape-rendering="crispEdges" fill="#3B2416">${cells.join('')}</svg>`;
+}
+
+/* ==========================================================================
+   4. SCREENS  – each returns an HTML string; labels match the wireframe
+   ========================================================================== */
+const label=(n,t)=>`<div class="screen-label">Screen ${n} · ${t}</div>`;
+const backBtn=(to,t='Back')=>`<button class="back" data-nav="${to}">← ${t}</button>`;
+
+/* ---- Screen 1: Home (stall list, search, filters) ---- */
+function filteredStalls(){
+  const f=S.filters,q=f.q.trim().toLowerCase();
+  return STALLS.filter(s=>
+    (f.cuisine==='All'||s.cuisine===f.cuisine)&&(!f.halal||s.halal)&&
+    (!f.veg||MENUS[s.id].some(i=>i.veg))&&(!f.price||s.price===f.price)&&
+    (!q||(s.name+s.cuisine+s.tag+MENUS[s.id].map(i=>i.n).join(' ')).toLowerCase().includes(q)));
+}
+function stallListHTML(){
+  const l=filteredStalls();
+  if(!l.length)return `<div class="card empty"><div class="big">🔍</div><h3>No stalls match</h3><p class="muted">Try clearing a filter or searching for something else.</p><p><button class="btn ghost" data-action="clear-filters" style="margin-top:12px">Clear filters</button></p></div>`;
+  return `<div class="grid stalls">${l.map(s=>`
+    <a class="stall-link" href="#/menu/${s.id}" aria-label="${esc(s.name)}, ${s.open?'open':'closed'}">
+    <article class="card stall ${s.open?'':'closed'}">
+      ${img(s.e,s.c,'3.6rem')}
+      <div class="body">${img(s.e,(s.c+2)%6,'1.6rem').replace('class="img"','class="img logo-s"')}
+        <h3>${esc(s.name)}</h3>
+        <p class="muted small">${esc(s.cuisine)} · ${priceSym(s.price)} · ${esc(s.tag)}</p>
+        <div class="row wrap" style="margin-top:8px;gap:6px">${stallBadges(s)}</div>
+      </div></article></a>`).join('')}</div>`;
+}
+function Home(){
+  const f=S.filters;
+  return `${label(1,'Home')}
+  <div class="hero"><h1>What are you craving today? 😋</h1><p>Order ahead from your school canteen — skip the queue.</p></div>
+  <div class="stack">
+    <label class="field"><span class="sr">Search stalls or dishes</span>
+      <input type="search" id="q" placeholder="🔍  Search stalls or dishes" value="${esc(f.q)}" autocomplete="off"></label>
+    <div><div class="small bold muted">Cuisine</div>
+      <div class="chips" role="group" aria-label="Cuisine filter">${CUISINES.map(c=>`<button class="chip" aria-pressed="${f.cuisine===c}" data-action="cuisine" data-v="${c}">${c}</button>`).join('')}</div></div>
+    <div class="row wrap" role="group" aria-label="Dietary and price filters">
+      <button class="chip" aria-pressed="${f.halal}" data-action="tog-halal">☪️ Halal</button>
+      <button class="chip" aria-pressed="${f.veg}" data-action="tog-veg">🌱 Vegetarian</button>
+      <span class="muted bold small" style="margin-left:6px">Price:</span>
+      ${[1,2,3].map(p=>`<button class="chip" aria-pressed="${f.price===p}" data-action="price" data-v="${p}" aria-label="Price ${'$'.repeat(p)}">${priceSym(p)}</button>`).join('')}
+    </div>
+    <h2>Stalls near you</h2>
+    <div id="stall-list">${stallListHTML()}</div>
+  </div>`;
+}
+
+/* ---- Screen 2: Menu (categories + item cards) ---- */
+function Menu(sid){
+  const s=stallOf(sid); if(!s)return notFound();
+  const items=MENUS[sid].filter(i=>!S.menuVegOnly||i.veg);
+  const cats=['All',...new Set(MENUS[sid].map(i=>i.cat))];
+  const cat=cats.includes(S.menuCat)?S.menuCat:'All';
+  const shown=items.filter(i=>cat==='All'||i.cat===cat);
+  return `${label(2,'Menu')}${backBtn('#/home','Home')}
+  <div class="row" style="gap:14px;margin-bottom:12px">
+    ${img(s.e,s.c,'2rem').replace('class="img"','class="img logo-s" style="width:64px;height:64px;--c1:'+COLORS[s.c][0]+';--c2:'+COLORS[s.c][1]+'"')}
+    <div class="grow"><h1>${esc(s.name)}</h1><p class="muted">${esc(s.cuisine)} · ${priceSym(s.price)} · ${esc(s.tag)}</p></div></div>
+  <div class="row wrap" style="margin-bottom:12px;gap:6px">${stallBadges(s)}</div>
+  ${!s.open?`<div class="notice red" role="alert" style="margin-bottom:12px">🚫 <div>This stall is closed right now. You can browse the menu, but ordering opens at ${s.opens}.</div></div>`:''}
+  ${s.open&&s.peak?`<div class="notice amber" style="margin-bottom:12px">⏱ <div>Peak hour: expect about ${s.wait} minutes before your order is ready. Pickup and delivery slots are filling up.</div></div>`:''}
+  <div class="row between wrap"><div class="chips grow" role="group" aria-label="Menu categories">${cats.map(c=>`<button class="chip" aria-pressed="${cat===c}" data-action="cat" data-v="${c}">${c}</button>`).join('')}</div>
+    <button class="chip" aria-pressed="${S.menuVegOnly}" data-action="menu-veg">🌱 Veg only</button></div>
+  <div class="stack menu-grid" style="margin-top:8px">${shown.length?shown.map(i=>{
+    const dis=!s.open||i.soldOut;
+    return `<article class="card item ${i.soldOut?'sold':''}">
+      ${img(i.e,s.c,'2.6rem')}
+      <div class="grow"><div class="row" style="gap:6px"><span class="veg-dot ${i.veg?'':'nonveg-dot'}" role="img" aria-label="${i.veg?'Vegetarian':'Non-vegetarian'}"></span><h3 class="name">${esc(i.n)}</h3></div>
+        <p class="muted small">${esc(i.d)}</p>
+        <div class="row between" style="margin-top:8px"><span class="bold">${money(i.p)}</span>
+          ${i.soldOut?'<span class="badge red">Sold out</span>':!s.open?'<span class="badge">Unavailable</span>':''}
+          ${dis?'':`<button class="btn sm" data-nav="#/item/${sid}/${i.id}" aria-label="Add ${esc(i.n)}">Add +</button>`}</div>
+      </div></article>`;}).join(''):'<div class="card empty">No items in this filter.</div>'}</div>
+  ${cartCount()&&S.cart.stallId===sid?`<div class="actionbar row between"><div><b>${cartCount()} item${cartCount()>1?'s':''}</b> · ${money(cartSub())}</div><a class="btn" href="#/cart">View cart →</a></div>`:''}`;
+}
+
+/* ---- Screen 3: Item Details (options / add-ons) ---- */
+const draftUnit=()=>{const i=draft.item;let p=i.p;(i.opts||[]).forEach((g,gi)=>p+=g.c[draft.pick[gi]][1]);(i.add||[]).forEach((a,ai)=>{if(draft.add[ai])p+=a[1]});return p;};
+function ItemDetails(sid,iid){
+  const s=stallOf(sid),i=s&&itemOf(sid,iid); if(!i)return notFound();
+  if(!draft||draft.item.id!==iid)draft={item:i,sid,qty:1,pick:(i.opts||[]).map(()=>0),add:(i.add||[]).map(()=>false)};
+  if(!s.open||i.soldOut)return `${label(3,'Item Details')}${backBtn('#/menu/'+sid,'Menu')}<div class="card empty"><div class="big">${i.soldOut?'😢':'🚫'}</div><h2>${i.soldOut?'Sold out':'Stall closed'}</h2><p class="muted">${esc(i.n)} can't be ordered right now.</p></div>`;
+  return `${label(3,'Item Details')}${backBtn('#/menu/'+sid,'Menu')}
+  <div class="cols two"><div class="stack">
+    <div class="card" style="padding:0;overflow:hidden">${img(i.e,s.c,'6rem').replace('class="img"','class="img" style="height:200px;--c1:'+COLORS[s.c][0]+';--c2:'+COLORS[s.c][1]+'"')}
+      <div style="padding:14px"><div class="row" style="gap:6px"><span class="veg-dot ${i.veg?'':'nonveg-dot'}" role="img" aria-label="${i.veg?'Vegetarian':'Non-vegetarian'}"></span><h1>${esc(i.n)}</h1></div>
+      <p class="muted">${esc(i.d)}</p><p class="bold" style="margin-top:6px">${money(i.p)}</p></div></div>
+    ${(i.opts||[]).map((g,gi)=>`<fieldset class="card" style="margin:0"><legend class="bold" style="padding:0 6px">${esc(g.g)} <span class="badge">Required</span></legend><div class="stack">${g.c.map((c,ci)=>`
+      <label class="choice"><input type="radio" name="opt${gi}" value="${ci}" data-pick="${gi}" ${draft.pick[gi]===ci?'checked':''}><span class="grow">${esc(c[0])}</span><span class="muted">${c[1]?'+'+money(c[1]):'Free'}</span></label>`).join('')}</div></fieldset>`).join('')}
+    ${(i.add||[]).length?`<fieldset class="card" style="margin:0"><legend class="bold" style="padding:0 6px">Add-ons <span class="badge">Optional</span></legend><div class="stack">${i.add.map((a,ai)=>`
+      <label class="choice"><input type="checkbox" data-add="${ai}" ${draft.add[ai]?'checked':''}><span class="grow">${esc(a[0])}</span><span class="muted">+${money(a[1])}</span></label>`).join('')}</div></fieldset>`:''}
+  </div>
+  <div class="side"><div class="card actionbar" style="position:static;margin:0"><div class="row between"><span class="bold">Quantity</span>
+    <div class="qty"><button data-action="dq" data-v="-1" aria-label="Decrease quantity">−</button><output id="dq">${draft.qty}</output><button data-action="dq" data-v="1" aria-label="Increase quantity">+</button></div></div>
+    <button class="btn block" style="margin-top:12px" data-action="add-to-cart" id="addbtn">Add to cart · ${money(draftUnit()*draft.qty)}</button></div></div></div>`;
+}
+
+/* ---- Screen 4: Cart (summary, quantity edits, special requests) ---- */
+function Cart(){
+  const s=S.cart.stallId&&stallOf(S.cart.stallId);
+  if(!s||!S.cart.lines.length)return `${label(4,'Cart')}<div class="card empty"><div class="big">🛒</div><h2>Your cart is empty</h2><p class="muted">Pick a stall and add something tasty.</p><p><a class="btn" style="margin-top:14px" href="#/home">Browse stalls</a></p></div>`;
+  return `${label(4,'Cart')}${backBtn('#/menu/'+s.id,'Menu')}
+  <div class="cols two"><div class="stack">
+    <div class="row" style="gap:10px"><h1>Your order</h1></div>
+    <div class="row wrap" style="gap:8px"><b>${esc(s.name)}</b> ${stallBadges(s)}</div>
+    ${!s.open?`<div class="notice red" role="alert">🚫 <div>${esc(s.name)} just closed. Your cart is saved, but you can't check out until it reopens at ${s.opens}.</div></div>`:''}
+    ${s.open&&s.peak?`<div class="notice amber">⏱ <div>Peak hour — estimated wait about <b>${s.wait} minutes</b>. Pickup/delivery slots are limited.</div></div>`:''}
+    ${S.cart.lines.map((l,idx)=>{const it=itemOf(s.id,l.itemId);return `<article class="card item">${img(it.e,s.c,'2rem').replace('class="img"','class="img" style="width:72px;min-height:72px"')}
+      <div class="grow"><h3>${esc(l.name)}</h3><p class="muted small">${esc(l.opts||'Standard')}</p>
+      <div class="row between wrap" style="margin-top:6px"><div class="qty"><button data-action="cq" data-i="${idx}" data-v="-1" aria-label="Decrease ${esc(l.name)}">−</button><output>${l.qty}</output><button data-action="cq" data-i="${idx}" data-v="1" aria-label="Increase ${esc(l.name)}">+</button></div>
+      <b>${money(l.qty*l.unit)}</b></div>
+      <button class="back" style="color:var(--red);margin:0" data-action="remove" data-i="${idx}">Remove</button></div></article>`;}).join('')}
+    <label class="field card"><span>Special requests</span><textarea id="note" placeholder="e.g. less spicy, no onions, allergy info…" maxlength="200">${esc(S.cart.note)}</textarea></label>
+  </div>
+  <div class="side"><div class="card"><h3>Order summary</h3><hr class="hr">
+    ${S.cart.lines.map(l=>`<div class="row between small"><span>${l.qty} × ${esc(l.name)}</span><span>${money(l.qty*l.unit)}</span></div>`).join('')}
+    <hr class="hr"><div class="row between"><span>Subtotal</span><b>${money(cartSub())}</b></div>
+    <p class="muted small">Delivery fee (if any) is added after you choose an order mode.</p>
+    <button class="btn block" style="margin-top:12px" data-nav="#/mode" ${s.open?'':'disabled'}>Choose order mode →</button>
+    <button class="btn danger block sm" style="margin-top:8px" data-action="clear-cart">Clear cart</button></div></div></div>`;
+}
+
+/* ---- Screen 5: Order Mode Selection (fields depend on mode) ---- */
+const fee=()=>S.co.mode==='delivery'?DELIVERY_FEE:0;
+function modeFields(){
+  const c=S.co,s=stallOf(S.cart.stallId);
+  if(c.mode==='dinein')return `<div class="card stack"><h3>Dine-in details</h3>
+    <div><span class="bold">Table number</span> <span class="badge">Required</span>
+      <div class="pills" role="radiogroup" aria-label="Table number" style="margin-top:8px">${TABLES.map(t=>`<label class="pill"><input type="radio" name="table" value="${t.n}" ${c.table===t.n?'checked':''} ${t.taken?'disabled':''}><span>${t.n}${t.taken?'<small>Taken</small>':''}</span></label>`).join('')}</div></div>
+    <button class="btn ghost" data-action="scan">📷 Scan table QR code</button>
+    <label class="choice"><input type="checkbox" id="notify" ${c.notify?'checked':''}><span>🔔 Notify me when my order is ready (or bring it to my table)</span></label></div>`;
+  if(c.mode==='pickup')return `<div class="card stack"><h3>Pickup details</h3>
+    <div><span class="bold">Pickup time slot</span> <span class="badge">Required</span>
+      <div class="pills" role="radiogroup" aria-label="Pickup time slot" style="margin-top:8px">${PICKUP_SLOTS.map(([t,full])=>`<label class="pill"><input type="radio" name="slot" value="${t}" ${c.slot===t?'checked':''} ${full?'disabled':''}><span>${t} PM${full?'<small>Full</small>':''}</span></label>`).join('')}</div></div>
+    <div class="notice blue">🎟️ <div>You'll get an <b>order number and QR code</b> to show at ${esc(s.name)} when you collect.</div></div></div>`;
+  if(c.mode==='delivery')return `<div class="card stack"><h3>Delivery details</h3>
+    <label class="field"><span>Drop-off point <span class="badge">Required</span></span><select id="point"><option value="">Select a drop-off point…</option>${Object.keys(DROPOFFS).map(p=>`<option ${c.point===p?'selected':''}>${p}</option>`).join('')}</select></label>
+    ${c.point?`<label class="field"><span>${c.point==='Classroom'?'Classroom / block':c.point==='Library'?'Area in library':'Hostel block'} <span class="badge">Required</span></span><select id="detail"><option value="">Select…</option>${DROPOFFS[c.point].map(d=>`<option ${c.detail===d?'selected':''}>${d}</option>`).join('')}</select></label>`:''}
+    <div><span class="bold">Delivery time</span> <span class="badge">Required</span>
+      <div class="pills" role="radiogroup" aria-label="Delivery time" style="margin-top:8px">${DELIVERY_SLOTS.map(([t,full])=>`<label class="pill"><input type="radio" name="dtime" value="${t}" ${c.dtime===t?'checked':''} ${full?'disabled':''}><span>${t} PM${full?'<small>Full</small>':''}</span></label>`).join('')}</div></div>
+    <div class="notice amber">🛵 <div>Delivery fee of ${money(DELIVERY_FEE)} applies.</div></div></div>`;
+  return '';
+}
+function OrderMode(){
+  const s=stallOf(S.cart.stallId);
+  if(!s||!S.cart.lines.length)return Cart();
+  const c=S.co;
+  return `${label(5,'Order Mode Selection')}${backBtn('#/cart','Cart')}
+  <div class="cols two"><div class="stack"><h1>How would you like your order?</h1>
+    <div class="stack" role="radiogroup" aria-label="Order mode">${Object.entries(MODES).map(([k,m])=>`
+      <label class="mode-card"><input type="radio" name="mode" value="${k}" ${c.mode===k?'checked':''}><span class="ic" aria-hidden="true">${m.ic}</span><span class="grow"><b>${m.name}</b><br><span class="muted small">${m.desc}</span></span></label>`).join('')}</div>
+    <div id="mode-fields" class="stack">${modeFields()}</div></div>
+  <div class="side"><div class="card"><h3>Summary</h3><hr class="hr">
+    <div class="row between"><span>Subtotal</span><span>${money(cartSub())}</span></div>
+    <div class="row between"><span>Delivery fee</span><span id="feev">${money(fee())}</span></div><hr class="hr">
+    <div class="row between"><b>Total</b><b id="totv">${money(cartSub()+fee())}</b></div>
+    ${s.peak?`<p class="small" style="margin-top:8px">⏱ Peak hour: ~${s.wait} min wait</p>`:''}
+    <button class="btn block" style="margin-top:12px" data-action="to-payment" id="tobtn">Continue to payment →</button></div></div></div>`;
+}
+function modeValid(){const c=S.co;
+  if(!c.mode)return 'Please choose an order mode.';
+  if(c.mode==='dinein'&&!c.table)return 'Please select or scan a table number.';
+  if(c.mode==='pickup'&&!c.slot)return 'Please pick a pickup time slot.';
+  if(c.mode==='delivery'){if(!c.point||!c.detail)return 'Please choose a drop-off point.';if(!c.dtime)return 'Please pick a delivery time.';}
+  return '';}
+
+/* ---- Screen 6: Payment ---- */
+function Payment(){
+  const s=stallOf(S.cart.stallId);
+  if(!s||!S.cart.lines.length||!S.co.mode)return Cart();
+  const c=S.co,total=cartSub()+fee();
+  const methods=[['wallet','💳','Campus wallet','Balance $24.50'],['card','🏦','Debit / credit card','Visa •••• 4242'],['counter','💵','Pay at counter',c.mode==='delivery'?'Not available for delivery':'Pay when you collect / are served']];
+  if(c.mode==='delivery'&&S.pay==='counter')S.pay='wallet';
+  const where=c.mode==='dinein'?`Table ${c.table}`:c.mode==='pickup'?`Pickup at ${c.slot} PM`:`${c.point} – ${c.detail}, ${c.dtime} PM`;
+  return `${label(6,'Payment')}${backBtn('#/mode','Order mode')}
+  <div class="cols two"><div class="stack"><h1>Payment</h1>
+    <div class="stack" role="radiogroup" aria-label="Payment method">${methods.map(([k,ic,n,d])=>{const off=k==='counter'&&c.mode==='delivery';return `
+      <label class="mode-card ${off?'off':''}" style="${off?'opacity:.5':''}"><input type="radio" name="pay" value="${k}" ${S.pay===k?'checked':''} ${off?'disabled':''}><span class="ic" aria-hidden="true">${ic}</span><span class="grow"><b>${n}</b><br><span class="muted small">${d}</span></span></label>`}).join('')}</div></div>
+  <div class="side"><div class="card"><h3>Order review</h3><p class="muted small">${esc(s.name)} · ${MODES[c.mode].name}<br>${esc(where)}</p><hr class="hr">
+    ${S.cart.lines.map(l=>`<div class="row between small"><span>${l.qty} × ${esc(l.name)}</span><span>${money(l.qty*l.unit)}</span></div>`).join('')}
+    ${S.cart.note?`<p class="small muted" style="margin-top:6px">📝 ${esc(S.cart.note)}</p>`:''}<hr class="hr">
+    <div class="row between small"><span>Subtotal</span><span>${money(cartSub())}</span></div>
+    ${fee()?`<div class="row between small"><span>Delivery fee</span><span>${money(fee())}</span></div>`:''}
+    <div class="row between" style="margin-top:6px"><b>Total</b><b>${money(total)}</b></div>
+    <button class="btn block" style="margin-top:12px" data-action="pay">Pay ${money(total)}</button></div></div></div>`;
+}
+
+/* ---- Screen 7: Live Order Status ---- */
+function OrderTracking(id){
+  const o=S.orders.find(x=>x.id===id); if(!o)return notFound();
+  const s=stallOf(o.stallId),idx=STATUS.indexOf(o.status);
+  const stepIc=['📥','👩‍🍳','🔔','✅'];
+  const names=['Received','Preparing','Ready',doneLabel(o)];
+  const msg={Received:'The stall has your order and will start soon.',Preparing:'Your food is being prepared.',
+    Ready:o.mode==='dinein'?`Your order is ready — we're bringing it to table ${o.info.table}.`:o.mode==='pickup'?'Ready! Show your order number or QR at the stall.':'Your order is on its way to the drop-off point.',
+    Done:o.mode==='delivery'?'Delivered. Enjoy your meal!':'Collected. Enjoy your meal!'};
+  return `${label(7,'Live Order Status')}${backBtn('#/orders','Orders')}
+  <div class="cols two"><div class="stack">
+    <div class="card" style="text-align:center"><p class="muted small bold">ORDER NUMBER</p><div class="ordnum">${o.id}</div>
+      <p class="muted">${esc(s.name)} · ${MODES[o.mode].name}</p></div>
+    ${o.status==='Cancelled'?`<div class="notice red" role="alert">❌ <div><b>Order cancelled.</b> Your payment of ${money(o.total)} will be refunded to your ${o.pay==='counter'?'account (nothing was charged)':'original payment method'} within 1–2 days.</div></div>
+      <a class="btn block" href="#/home">Back to Home</a>`:`
+    <div class="card"><h2 style="margin-bottom:14px">Order progress</h2>
+      <ol class="steps" aria-label="Order progress">${names.map((n,i)=>`<li class="${i<idx?'done':i===idx?(idx===3?'done':'now'):''}" ${i===idx?'aria-current="step"':''}><div class="dot">${i<idx||idx===3?'✓':stepIc[i]}</div>${n}</li>`).join('')}</ol>
+      <p style="margin-top:14px;text-align:center" class="bold" aria-live="polite">${msg[o.status]}</p>
+      ${o.status!=='Done'&&s.peak?`<div class="notice amber" style="margin-top:12px">⏱ <div>Peak hour — estimated wait about ${s.wait} min.</div></div>`:''}</div>
+    ${o.mode==='pickup'&&o.status!=='Done'?`<div class="card row" style="gap:16px;justify-content:center;flex-wrap:wrap">${qrSVG(o.id)}<div><h3>Show at the stall</h3><p class="muted">Pickup slot: <b>${o.info.slot} PM</b><br>Order no. <b>${o.id}</b></p></div></div>`:''}
+    ${o.status==='Done'?`<a class="btn block" href="#/complete/${o.id}">Continue →</a>`:''}
+    ${o.status==='Received'?`<button class="btn danger block" data-action="cancel" data-id="${o.id}">Cancel order</button>
+      <p class="muted small" style="text-align:center">You can cancel until the stall starts preparing your food.</p>`
+      :o.status==='Preparing'||o.status==='Ready'?`<button class="btn danger block" disabled>Cancel order</button><p class="muted small" style="text-align:center">Cancellation isn't possible once preparation has started.</p>`:''}`}
+  </div>
+  <div class="side"><div class="card"><h3>Your order</h3><p class="muted small">${orderWhere(o)}</p><hr class="hr">
+    ${o.lines.map(l=>`<div class="row between small"><span>${l.qty} × ${esc(l.name)}</span><span>${money(l.qty*l.unit)}</span></div>`).join('')}
+    ${o.note?`<p class="small muted" style="margin-top:6px">📝 ${esc(o.note)}</p>`:''}<hr class="hr"><div class="row between"><b>Total</b><b>${money(o.total)}</b></div></div></div></div>`;
+}
+const orderWhere=o=>o.mode==='dinein'?`Dine-in · Table ${o.info.table}${o.info.notify?' · notify when ready':''}`:o.mode==='pickup'?`Pickup · ${o.info.slot} PM`:`Delivery · ${o.info.point}, ${o.info.detail} · ${o.info.time} PM`;
+
+/* ---- Screen 8: Order Complete ---- */
+function OrderComplete(id){
+  const o=S.orders.find(x=>x.id===id); if(!o)return notFound();
+  return `${label(8,'Order Complete')}
+  <div class="card empty" style="max-width:520px;margin:0 auto"><div class="big">🎉</div><h1>Order complete!</h1>
+    <p class="muted" style="margin:6px 0 14px">${o.id} was ${doneLabel(o).toLowerCase()}. Thanks for ordering from ${esc(stallOf(o.stallId).name)}.</p>
+    <div class="card" style="text-align:left;background:var(--cream)">${o.lines.map(l=>`<div class="row between small"><span>${l.qty} × ${esc(l.name)}</span><span>${money(l.qty*l.unit)}</span></div>`).join('')}<hr class="hr"><div class="row between"><b>Total paid</b><b>${money(o.total)}</b></div></div>
+    <div class="stack" style="margin-top:16px"><a class="btn block" href="#/home">Back to Home</a>
+    <button class="btn ghost block" data-action="reorder" data-id="${o.id}">Order this again</button>
+    <a class="btn ghost block" href="#/orders">View order history</a></div></div>`;
+}
+
+/* ---- Screen 9: Order History (with Reorder) ---- */
+function OrderHistory(){
+  const mine=S.orders.filter(o=>o.mine).sort((a,b)=>b.placed-a.placed);
+  if(!mine.length)return `${label(9,'Order History')}<div class="card empty"><div class="big">🧾</div><h2>No orders yet</h2><p><a class="btn" style="margin-top:12px" href="#/home">Browse stalls</a></p></div>`;
+  const card=o=>{const s=stallOf(o.stallId);return `<article class="card"><div class="row" style="gap:12px;align-items:flex-start">${img(s.e,s.c,'1.6rem').replace('class="img"','class="img logo-s"')}
+    <div class="grow"><div class="row between wrap"><h3>${esc(s.name)}</h3><span class="badge ${o.status==='Cancelled'?'red':isActive(o)?'amber':'green'}">${statusLabel(o)}</span></div>
+    <p class="muted small">${o.id} · ${ago(o.placed)} · ${MODES[o.mode].name}</p>
+    <p class="small" style="margin-top:4px">${o.lines.map(l=>`${l.qty}× ${esc(l.name)}`).join(', ')}</p>
+    <div class="row between wrap" style="margin-top:8px"><b>${money(o.total)}</b><div class="row">
+      ${isActive(o)?`<a class="btn sm" href="#/track/${o.id}">Track order</a>`:`<button class="btn ghost sm" data-action="reorder" data-id="${o.id}">↻ Reorder</button>`}</div></div></div></div></article>`};
+  const act=mine.filter(isActive),past=mine.filter(o=>!isActive(o));
+  return `${label(9,'Order History')}<h1 style="margin-bottom:12px">Your orders</h1><div class="stack">
+    ${act.length?`<h2>Active</h2><div class="stack">${act.map(card).join('')}</div>`:''}
+    <h2>Past orders</h2><div class="grid stalls" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${past.map(card).join('')}</div></div>`;
+}
+
+/* ---- Screen 10: Stall Owner View (incoming orders + status buttons) ---- */
+function OwnerView(){
+  const s=stallOf(S.ownerStall);
+  const all=S.orders.filter(o=>o.stallId===s.id).sort((a,b)=>a.placed-b.placed);
+  const tabs={Active:all.filter(isActive),New:all.filter(o=>o.status==='Received'),Preparing:all.filter(o=>o.status==='Preparing'),Ready:all.filter(o=>o.status==='Ready'),Completed:all.filter(o=>!isActive(o))};
+  const list=tabs[S.ownerTab]||tabs.Active;
+  const next={Received:['Accept & start preparing','Preparing'],Preparing:['Mark ready','Ready'],Ready:null};
+  const btn=o=>o.status==='Received'?'Accept & start preparing':o.status==='Preparing'?'Mark ready':o.status==='Ready'?(o.mode==='delivery'?'Mark delivered':'Mark collected'):'';
+  return `${label(10,'Stall Owner View')}
+  <div class="row between wrap" style="margin-bottom:12px"><div><h1>Incoming orders</h1><p class="muted">Managing <b>${esc(s.name)}</b> ${s.peak?'· <span class="badge amber">Peak hour</span>':''}</p></div>
+    <label class="field" style="min-width:200px"><span class="sr">Choose stall</span><select id="ownerStall" aria-label="Choose stall">${STALLS.map(x=>`<option value="${x.id}" ${x.id===s.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label></div>
+  <div class="chips" role="tablist" aria-label="Order filter">${Object.keys(tabs).map(t=>`<button class="chip" role="tab" aria-selected="${S.ownerTab===t}" aria-pressed="${S.ownerTab===t}" data-action="otab" data-v="${t}">${t} (${tabs[t].length})</button>`).join('')}</div>
+  ${list.length?`<div class="orders-board">${list.map(o=>`<article class="card oc" data-s="${o.status}">
+    <div class="row between"><h3>${o.id}</h3><span class="badge ${o.status==='Received'?'amber':o.status==='Ready'?'green':o.status==='Cancelled'?'red':o.status==='Preparing'?'blue':''}">${statusLabel(o)}</span></div>
+    <p class="muted small">${esc(o.cust)} · ${ago(o.placed)}</p>
+    <p class="small bold" style="margin:6px 0">${MODES[o.mode].ic} ${orderWhere(o)}</p>
+    <table class="table small">${o.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}${l.opts?`<br><span class="muted">${esc(l.opts)}</span>`:''}</td><td style="text-align:right">${money(l.qty*l.unit)}</td></tr>`).join('')}</table>
+    ${o.note?`<div class="notice amber small" style="margin:8px 0">📝 ${esc(o.note)}</div>`:''}
+    ${isActive(o)?`<div class="row wrap" style="margin-top:10px"><button class="btn grow" data-action="ostatus" data-id="${o.id}">${btn(o)}</button>
+      ${o.status==='Received'?`<button class="btn danger" data-action="oreject" data-id="${o.id}">Reject</button>`:''}</div>`:''}</article>`).join('')}</div>`
+  :`<div class="card empty"><div class="big">🍽️</div><h3>No orders here</h3><p class="muted">New orders will appear automatically.</p></div>`}`;
+}
+
+/* ---- Profile (bottom-nav item) ---- */
+function Profile(){
+  return `${label(11,'Profile')}<h1 style="margin-bottom:12px">Profile</h1><div class="stack" style="max-width:560px">
+    <div class="card row" style="gap:14px"><div class="img logo-s" style="--c1:#FFB347;--c2:#E8590C;width:64px;height:64px"><i style="font-size:1.8rem">🧑‍🎓</i></div><div><h2>Sam Rivera</h2><p class="muted">Student · Grade 11 · ID 20-4471</p></div></div>
+    <div class="card"><div class="row between"><span>Campus wallet</span><b>$24.50</b></div><hr class="hr"><div class="row between"><span>Saved payment</span><span>Visa •••• 4242</span></div><hr class="hr"><div class="row between"><span>Dietary</span><span>Vegetarian-friendly</span></div></div>
+    <a class="btn ghost block" href="#/orders">📜 Order history</a>
+    <a class="btn block" href="#/owner">🧑‍🍳 Switch to Stall Owner View</a>
+    <button class="btn danger block" data-action="reset">Reset demo data</button></div>`;
+}
+const notFound=()=>`<div class="card empty"><div class="big">🤔</div><h2>Page not found</h2><a class="btn" style="margin-top:12px" href="#/home">Go Home</a></div>`;
+
+/* ==========================================================================
+   5. ROUTER + RENDER
+   ========================================================================== */
+function route(){
+  const [,r,a,b]=(location.hash||'#/home').split('/');
+  switch(r){
+    case 'menu':return [Menu(a),'home'];
+    case 'item':return [ItemDetails(a,b),'home'];
+    case 'cart':return [Cart(),'cart'];
+    case 'mode':return [OrderMode(),'cart'];
+    case 'payment':return [Payment(),'cart'];
+    case 'track':return [OrderTracking(a),'orders'];
+    case 'complete':return [OrderComplete(a),'orders'];
+    case 'orders':return [OrderHistory(),'orders'];
+    case 'owner':return [OwnerView(),'profile'];
+    case 'profile':return [Profile(),'profile'];
+    default:return [Home(),'home'];
+  }
+}
+const NAV=[['home','🏠','Home','#/home'],['orders','🧾','Orders','#/orders'],['cart','🛒','Cart','#/cart'],['profile','👤','Profile','#/profile']];
+function renderNav(active){
+  const html=NAV.map(([k,ic,t,h])=>`<a href="${h}" ${k===active?'aria-current="page"':''}><span class="ic" aria-hidden="true">${ic}</span>${t}${k==='cart'&&cartCount()?`<span class="badge-dot" aria-label="${cartCount()} items">${cartCount()}</span>`:''}</a>`).join('');
+  $('#top-nav').innerHTML=html;$('#bottom-nav').innerHTML=html;
+}
+function render(keepScroll){
+  const y=scrollY,[html,active]=route();
+  $('#app').innerHTML=html;renderNav(active);
+  keepScroll?scrollTo(0,y):scrollTo(0,0);
+}
+addEventListener('hashchange',()=>{closeModal();render();});
+
+/* ==========================================================================
+   6. ACTIONS  (event delegation)
+   ========================================================================== */
+const go=h=>{location.hash=h;};
+function addLine(sid,line){
+  const c=S.cart,ex=c.lines.find(l=>l.key===line.key);
+  ex?ex.qty+=line.qty:c.lines.push(line);c.stallId=sid;save();
+}
+function reorder(id){
+  const o=S.orders.find(x=>x.id===id),s=stallOf(o.stallId);
+  if(!s.open){toast(`${s.name} is closed right now — opens ${s.opens}.`);return;}
+  const ok=o.lines.filter(l=>{const it=itemOf(o.stallId,l.itemId);return it&&!it.soldOut;});
+  if(!ok.length){toast('Those items are sold out right now.');return;}
+  S.cart={stallId:o.stallId,lines:ok.map(l=>({...l})),note:''};save();
+  if(ok.length<o.lines.length)toast('Some sold-out items were left out.');
+  go('#/cart');
+}
+const actions={
+  'cuisine':v=>{S.filters.cuisine=v;render(true);},
+  'tog-halal':()=>{S.filters.halal=!S.filters.halal;render(true);},
+  'tog-veg':()=>{S.filters.veg=!S.filters.veg;render(true);},
+  'price':v=>{S.filters.price=S.filters.price==v?0:+v;render(true);},
+  'clear-filters':()=>{S.filters={q:'',cuisine:'All',halal:false,veg:false,price:0};render(true);},
+  'cat':v=>{S.menuCat=v;render(true);},
+  'menu-veg':()=>{S.menuVegOnly=!S.menuVegOnly;render(true);},
+  'dq':v=>{draft.qty=Math.max(1,Math.min(20,draft.qty+ +v));$('#dq').textContent=draft.qty;updDraft();},
+  'add-to-cart':()=>{
+    const {item:i,sid}=draft;
+    if(S.cart.stallId&&S.cart.stallId!==sid&&S.cart.lines.length){
+      modal(`<h2>Start a new cart?</h2><p class="muted" style="margin:8px 0 16px">Your cart has items from ${esc(stallOf(S.cart.stallId).name)}. You can only order from one stall at a time.</p><div class="stack"><button class="btn block" data-action="replace-cart">Clear cart &amp; add this</button><button class="btn ghost block" data-action="close-modal">Keep current cart</button></div>`);return;}
+    commitDraft();
+  },
+  'replace-cart':()=>{S.cart={stallId:null,lines:[],note:''};closeModal();commitDraft();},
+  'close-modal':()=>closeModal(),
+  'cq':(v,el)=>{const l=S.cart.lines[+el.dataset.i];l.qty+=+v;if(l.qty<1)l.qty=1;if(l.qty>20)l.qty=20;save();render(true);},
+  'remove':(v,el)=>{S.cart.lines.splice(+el.dataset.i,1);if(!S.cart.lines.length)S.cart.stallId=null;save();render(true);},
+  'clear-cart':()=>modal(`<h2>Clear cart?</h2><p class="muted" style="margin:8px 0 16px">All items will be removed.</p><div class="stack"><button class="btn danger block" data-action="do-clear">Yes, clear cart</button><button class="btn ghost block" data-action="close-modal">Keep items</button></div>`),
+  'do-clear':()=>{S.cart={stallId:null,lines:[],note:''};save();closeModal();render();},
+  'scan':()=>{const free=TABLES.filter(t=>!t.taken);S.co.table=free[Math.floor(Math.random()*free.length)].n;save();render(true);toast(`Scanned! Table ${S.co.table} selected.`);},
+  'to-payment':()=>{const e=modeValid();if(e){toast(e);return;}go('#/payment');},
+  'pay':()=>{
+    const s=stallOf(S.cart.stallId);
+    if(!s.open){toast(`${s.name} closed while you were checking out.`);return;}
+    const c=S.co,id='CB-'+(S.nextId++);
+    const info=c.mode==='dinein'?{table:c.table,notify:c.notify}:c.mode==='pickup'?{slot:c.slot}:{point:c.point,detail:c.detail,time:c.dtime};
+    S.orders.push({id,stallId:s.id,mode:c.mode,info,lines:S.cart.lines.map(l=>({...l})),note:S.cart.note,total:cartSub()+fee(),status:'Received',placed:Date.now(),mine:true,auto:true,cust:'Sam Rivera',pay:S.pay});
+    S.cart={stallId:null,lines:[],note:''};S.co={mode:null,table:null,slot:null,point:'',detail:'',dtime:null,notify:true};save();
+    go('#/track/'+id);toast('Payment successful! Order placed.');
+  },
+  'cancel':(v,el)=>modal(`<h2>Cancel this order?</h2><p class="muted" style="margin:8px 0 16px">${el.dataset.id} will be cancelled and you'll be refunded.</p><div class="stack"><button class="btn danger block" data-action="do-cancel" data-id="${el.dataset.id}">Yes, cancel order</button><button class="btn ghost block" data-action="close-modal">Keep my order</button></div>`),
+  'do-cancel':(v,el)=>{const o=S.orders.find(x=>x.id===el.dataset.id);if(o&&o.status==='Received'){o.status='Cancelled';o.auto=false;save();}else toast('Too late — the stall has already started preparing.');closeModal();render(true);},
+  'reorder':(v,el)=>reorder(el.dataset.id),
+  'otab':v=>{S.ownerTab=v;render(true);},
+  'ostatus':(v,el)=>{const o=S.orders.find(x=>x.id===el.dataset.id);o.status=STATUS[STATUS.indexOf(o.status)+1];o.auto=false;save();render(true);toast(`${o.id} → ${statusLabel(o)}`);},
+  'oreject':(v,el)=>{const o=S.orders.find(x=>x.id===el.dataset.id);o.status='Cancelled';o.auto=false;save();render(true);toast(`${o.id} rejected & refunded.`);},
+  'reset':()=>{try{localStorage.removeItem(KEY);}catch(e){}location.hash='#/home';location.reload();},
+};
+function commitDraft(){
+  const {item:i,sid,qty}=draft;
+  const picks=(i.opts||[]).map((g,gi)=>g.c[draft.pick[gi]][0]);
+  const adds=(i.add||[]).filter((a,ai)=>draft.add[ai]).map(a=>a[0]);
+  const optText=[...picks,...adds].join(', ');
+  addLine(sid,{key:[i.id,...picks,...adds].join('|'),itemId:i.id,name:i.n,opts:optText,unit:draftUnit(),qty});
+  draft=null;toast(`${i.n} added to cart`);go('#/menu/'+sid);
+}
+const updDraft=()=>{const b=$('#addbtn');if(b)b.textContent='Add to cart · '+money(draftUnit()*draft.qty);};
+
+document.addEventListener('click',e=>{
+  const n=e.target.closest('[data-nav]');if(n){go(n.dataset.nav);return;}
+  const a=e.target.closest('[data-action]');if(a&&actions[a.dataset.action]){e.preventDefault();actions[a.dataset.action](a.dataset.v,a);}
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='q'){S.filters.q=t.value;$('#stall-list').innerHTML=stallListHTML();}
+  else if(t.id==='note'){S.cart.note=t.value;save();}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.pick!==undefined){draft.pick[+t.dataset.pick]=+t.value;updDraft();}
+  else if(t.dataset.add!==undefined){draft.add[+t.dataset.add]=t.checked;updDraft();}
+  else if(t.name==='mode'){S.co.mode=t.value;save();$('#mode-fields').innerHTML=modeFields();$('#feev').textContent=money(fee());$('#totv').textContent=money(cartSub()+fee());}
+  else if(t.name==='table'){S.co.table=t.value;save();}
+  else if(t.name==='slot'){S.co.slot=t.value;save();}
+  else if(t.name==='dtime'){S.co.dtime=t.value;save();}
+  else if(t.id==='point'){S.co.point=t.value;S.co.detail='';save();$('#mode-fields').innerHTML=modeFields();}
+  else if(t.id==='detail'){S.co.detail=t.value;save();}
+  else if(t.id==='notify'){S.co.notify=t.checked;save();}
+  else if(t.name==='pay'){S.pay=t.value;save();}
+  else if(t.id==='ownerStall'){S.ownerStall=t.value;save();render(true);}
+});
+
+/* ==========================================================================
+   7. LIVE STATUS SIMULATION
+   Demo orders placed by the user advance on their own every ~9 seconds so the
+   Live Order Status screen updates. Stall owners can also advance them.
+   ========================================================================== */
+setInterval(()=>{
+  let changed=false;
+  S.orders.forEach(o=>{if(o.mine&&o.auto&&isActive(o)&&Date.now()-(o.lastTick||o.placed)>9000){o.status=STATUS[STATUS.indexOf(o.status)+1];o.lastTick=Date.now();changed=true;}});
+  if(changed){save();const r=(location.hash.split('/')[1]);if(['track','orders','owner'].includes(r)&&!$('#overlay').innerHTML){const a=document.activeElement;if(!a||a===document.body||!['INPUT','SELECT','TEXTAREA'].includes(a.tagName))render(true);}}
+},3000);
+
+render();
+</script>
+</body>
+</html>
