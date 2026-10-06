@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Food Court App - Wireframe Prototype v1</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#d9d9d9;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#111;display:flex;justify-content:center;padding:16px}
+  .phone{width:390px;height:844px;background:#fff;border:3px solid #111;border-radius:28px;display:flex;flex-direction:column;overflow:hidden;position:relative;font-size:15px;line-height:1.35}
+  .phone.large{font-size:19px}
+  button{font:inherit;color:inherit;cursor:pointer}
+  button:focus-visible,select:focus-visible{outline:3px solid #111;outline-offset:2px}
+
+  /* header */
+  .hdr{flex-shrink:0;border-bottom:2px solid #111;padding:10px 12px 8px;background:#f2f2f2}
+  .hdr .r1{display:flex;align-items:center;gap:8px}
+  .hdr .back{min-width:48px;min-height:48px;border:2px solid #111;background:#fff;border-radius:6px;font-weight:700}
+  .hdr .back.hide{visibility:hidden}
+  .hdr h1{flex:1;font-size:1.2em;text-align:center}
+  .tag{border:2px dashed #111;padding:2px 6px;font-size:.7em;font-weight:700;background:#fff;white-space:nowrap}
+  .hdr .r2{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+  .crumb{font-size:.8em;color:#333}
+  .tgl{min-height:44px;padding:0 10px;border:2px solid #111;background:#fff;border-radius:6px;font-size:.8em;font-weight:600}
+  .prog{display:flex;gap:4px;margin-top:4px}
+  .prog i{flex:1;height:8px;border:2px solid #111;background:#fff}
+  .prog i.on{background:#555}
+  .prog i.cur{background:#111}
+
+  /* body */
+  .body{flex:1;overflow-y:auto;padding:14px 14px 8px}
+  .foot{flex-shrink:0;padding:10px 14px 14px;border-top:2px solid #111;background:#f2f2f2}
+  .foot:empty{display:none}
+  h2{font-size:1.1em;margin:4px 0 8px}
+  p.note{font-size:.85em;color:#333;margin:6px 0 10px}
+  .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:8px 12px;border:2px solid #111;background:#fff;border-radius:6px;font-weight:700;margin-bottom:12px;text-align:center}
+  .btn.primary{background:#111;color:#fff}
+  .btn.sm{width:auto;min-width:64px;margin:0}
+  .btn:last-child{margin-bottom:0}
+  .card{border:2px solid #555;border-radius:6px;padding:12px;margin-bottom:10px;background:#fff}
+  .card.tap{display:block;width:100%;text-align:left;min-height:48px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .muted{color:#444;font-size:.85em}
+  .big{font-size:1.6em;font-weight:800}
+  .meter{display:flex;gap:4px;margin:8px 0}
+  .meter i{flex:1;height:18px;border:2px solid #111;background:#fff}
+  .meter i.on{background:#333}
+  .sel{border:3px solid #111;background:#eee}
+
+  /* chart */
+  .chart{display:flex;align-items:flex-end;gap:5px;height:110px;border-bottom:2px solid #111;padding-top:6px}
+  .chart .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:.7em;font-weight:700}
+  .chart .b span{display:block;width:100%;border:2px solid #111;background:#ccc}
+  .chart .b.now span{background:#555}
+  .labels{display:flex;gap:5px;font-size:.65em;margin-top:2px}
+  .labels div{flex:1;text-align:center}
+
+  /* qty */
+  .qty{display:flex;align-items:center;gap:8px}
+  .qty button{width:44px;height:44px;border:2px solid #111;background:#fff;border-radius:6px;font-weight:800;font-size:1.1em}
+  .qty b{min-width:20px;text-align:center}
+
+  /* select */
+  select{width:100%;min-height:48px;border:2px solid #111;border-radius:6px;font:inherit;padding:0 8px;background:#fff;margin:6px 0 12px}
+
+  /* map */
+  .map{height:170px;border:2px dashed #111;position:relative;background:repeating-linear-gradient(0deg,#f4f4f4 0 24px,#e2e2e2 24px 25px),repeating-linear-gradient(90deg,transparent 0 39px,#e2e2e2 39px 40px);display:flex;align-items:center;justify-content:center;margin:8px 0}
+  .pin{position:absolute;left:55%;top:38%;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#111;border:2px solid #111}
+  .pin::after{content:"";position:absolute;left:8px;top:8px;width:8px;height:8px;background:#fff;border-radius:50%}
+  .map .cap{position:absolute;left:6px;bottom:4px;font-size:.7em;background:#fff;border:1px solid #111;padding:1px 4px}
+  .map .lbl{position:absolute;left:calc(55% + 18px);top:calc(38% + 4px);font-size:.75em;background:#fff;border:1px solid #111;padding:1px 4px;font-weight:700}
+
+  /* steps */
+  .step{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed #888}
+  .dot{width:32px;height:32px;border:2px solid #111;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;background:#fff}
+  .step.done .dot{background:#555;color:#fff}
+  .step.cur .dot{background:#111;color:#fff}
+  .step.cur b{text-decoration:underline}
+  .step small{display:block;color:#444}
+
+  .toast{position:absolute;left:14px;right:14px;bottom:96px;background:#111;color:#fff;border-radius:6px;padding:12px;font-weight:600;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s}
+  .toast.show{opacity:1}
+  .sheet{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
+  .sheet .in{background:#fff;width:100%;border-top:3px solid #111;padding:16px 14px 18px;max-height:85%;overflow:auto}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="hdr">
+    <div class="r1">
+      <button class="back" id="back" onclick="back()" aria-label="Go back">&larr; Back</button>
+      <h1 id="title">Home</h1>
+      <span class="tag">Prototype v1</span>
+    </div>
+    <div class="r2">
+      <span class="crumb" id="crumb"></span>
+      <button class="tgl" id="tgl" onclick="toggleText()" aria-pressed="false">Larger text: Off</button>
+    </div>
+    <div class="prog hide" id="prog"></div>
+  </div>
+  <div class="body" id="body"></div>
+  <div class="foot" id="foot"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="sheet hide" id="sheet"><div class="in" id="sheetIn"></div></div>
+</div>
+
+<script>
+const $ = s => document.getElementById(s);
+const fmt = n => '$' + n.toFixed(2);
+
+const STALLS = [
+  {id:'chicken', name:'Chicken Rice Stall', ppl:4,  q:5,  open:true},
+  {id:'noodle',  name:'Noodle House',       ppl:11, q:12, open:true},
+  {id:'veg',     name:'Vegetarian Corner',  ppl:2,  q:3,  open:true},
+  {id:'western', name:'Western Grill',      ppl:7,  q:8,  open:true},
+  {id:'drinks',  name:'Drinks & Desserts',  ppl:0,  q:0,  open:false}
+];
+const MENU = {
+  chicken:[['Steamed chicken rice',4.50],['Roasted chicken rice',5.00],['Roasted duck rice',5.50,true],['Chicken porridge',3.80],['Soup of the day',2.00]],
+  noodle:[['Fishball noodles',4.50],['Laksa',5.20],['Wanton mee',4.80],['Iced lemon tea',1.50]],
+  veg:[['Mixed vegetable rice',4.20],['Tofu bowl',4.80],['Vegetable soup',2.50]],
+  western:[['Grilled chicken chop',6.50],['Fish and chips',6.80],['Mushroom soup',3.00]]
+};
+const ROOMS = {
+  'SR 2.1':'Delivery Table D1, Level 2 corridor, in front of SR 2.1',
+  'SR 2.4':'Delivery Table D2, Level 2 corridor, in front of SR 2.4',
+  'SR 3.2':'Delivery Table D3, Level 3 corridor, in front of SR 3.2',
+  'SR 3.5':'Delivery Table D4, Level 3 corridor, in front of SR 3.5',
+  'SR 4.1':'Delivery Table D5, Level 4 corridor, in front of SR 4.1'
+};
+const SLOTS = ['12:30 pm','12:40 pm','12:50 pm','1:00 pm','1:10 pm'];
+const BUSY = [['11:00','M',45],['11:30','M',50],['12:00','M',55],['12:30','H',90],['1:00','H',95],['1:30','M',55],['2:00','L',25]];
+const LEVEL = {L:'Low',M:'Medium',H:'High'};
+const DELIVERY_FEE = 1.00;
+const COUNTERS = {chicken:'Counter 1',noodle:'Counter 2',veg:'Counter 3',western:'Counter 4'};
+
+const S = {
+  hist:['home'], stall:null, cart:{stall:null,items:[]}, mode:'pickup', slot:1, room:'SR 2.1', err:null, orderNo:43,
+  order:{no:'A-038',time:'12:05 pm',mode:'pickup',stage:1,stall:'Noodle House',stallId:'noodle',slot:'12:30 pm',room:null,total:6.00}
+};
+
+/* ---------- helpers ---------- */
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2200);}
+function toggleText(){const p=$('phone');p.classList.toggle('large');const on=p.classList.contains('large');$('tgl').textContent='Larger text: '+(on?'On':'Off');$('tgl').setAttribute('aria-pressed',on);toast(on?'Larger text is on':'Larger text is off');}
+function go(id){S.hist.push(id);render();}
+function back(){if(S.hist.length>1){S.hist.pop();render();}}
+function cartCount(){return S.cart.items.reduce((a,i)=>a+i.qty,0);}
+function subtotal(){return S.cart.items.reduce((a,i)=>a+i.qty*i.price,0);}
+function total(){return subtotal()+(S.mode==='delivery'?DELIVERY_FEE:0);}
+function stallById(id){return STALLS.find(s=>s.id===id);}
+function meter(n){return '<div class="meter" aria-hidden="true">'+[1,2,3].map(i=>'<i class="'+(i<=n?'on':'')+'"></i>').join('')+'</div>';}
+
+/* ---------- actions ---------- */
+function openStall(id){const s=stallById(id);if(!s.open){S.err={type:'closed',stall:s.name};go('error');return;}S.stall=id;go('menu');}
+function soldOut(name){S.err={type:'soldout',item:name,stall:stallById(S.stall).name};go('error');}
+function add(i){
+  const st=stallById(S.stall),m=MENU[S.stall][i];
+  if(S.cart.stall!==S.stall){S.cart={stall:S.stall,items:[]};}
+  const f=S.cart.items.find(x=>x.name===m[0]);
+  if(f){f.qty=Math.min(9,f.qty+1);}else{S.cart.items.push({name:m[0],price:m[1],qty:1});}
+  toast('Added: '+m[0]+' ('+cartCount()+' in cart)');
+  render(true);
+}
+function qty(i,d){
+  const it=S.cart.items[i];it.qty+=d;
+  if(it.qty<=0){S.cart.items.splice(i,1);toast('Removed '+it.name);}else{toast(it.name+': '+it.qty);}
+  render(true);
+}
+function setMode(m){S.mode=m;toast(m==='pickup'?'Takeaway pickup selected':'Delivery selected');render(true);}
+function nextFromCart(){go(S.mode==='pickup'?'pickup':'delivery');}
+function setSlot(i){S.slot=i;toast('Pickup time chosen: '+SLOTS[i]);render(true);}
+function setRoom(v){S.room=v;toast('Delivery table updated for '+v);render(true);}
+function openSheet(){
+  const st=stallById(S.cart.stall);
+  const lines=S.cart.items.map(i=>'<div class="row"><span>'+i.qty+' x '+i.name+'</span><span>'+fmt(i.qty*i.price)+'</span></div>').join('');
+  const how=S.mode==='pickup'?'Takeaway pickup at '+SLOTS[S.slot]+' ('+COUNTERS[S.cart.stall]+')':'Delivery to '+S.room+' (fee '+fmt(DELIVERY_FEE)+')';
+  $('sheetIn').innerHTML='<h2>Please check your order</h2><p class="note">Nothing is charged until you confirm. This is a prototype, so no real payment is made.</p><div class="card"><b>'+st.name+'</b>'+lines+'<hr style="margin:8px 0"><div class="row"><b>Total</b><b>'+fmt(total())+'</b></div></div><div class="card">'+how+'</div><button class="btn primary" onclick="placeOrder()">Confirm and pay '+fmt(total())+'</button><button class="btn" onclick="closeSheet()">Go back and edit</button>';
+  $('sheet').classList.remove('hide');
+}
+function closeSheet(){$('sheet').classList.add('hide');toast('No problem. You can keep editing.');}
+function placeOrder(){
+  $('sheet').classList.add('hide');
+  S.order={no:'A-0'+(S.orderNo++),time:'12:16 pm',mode:S.mode,stage:0,stall:stallById(S.cart.stall).name,stallId:S.cart.stall,slot:SLOTS[S.slot],room:S.room,total:total()};
+  S.cart={stall:null,items:[]};
+  S.hist=['home','confirm'];render();toast('Order confirmed. Thank you!');
+}
+function advance(){
+  const o=S.order;
+  if(o.stage<3){o.stage++;toast('Status updated: '+stepNames(o)[o.stage]);render(true);}
+  else{toast('All done. Enjoy your meal!');S.hist=['home'];render();}
+}
+function stepNames(o){return o.mode==='delivery'?['Order received','Preparing','On the way','Delivered']:['Order received','Preparing','Ready for collection','Collected'];}
+
+/* ---------- screens ---------- */
+const SCREENS = {
+home(){
+  return {title:'Food Court',crumb:'Home',
+  body:`<div class="card"><div class="muted">Crowd level right now</div>
+    <div class="big">Medium</div>${meter(2)}
+    <div>Moderately busy. A short wait is likely.</div>
+    <div class="muted">Updated 12:14 pm</div></div>
+    <h2>Busy times today</h2>
+    <div class="card">${chart()}<p class="note">H = High, M = Medium, L = Low. The dark bar is now.</p></div>
+    <button class="btn" onclick="go('crowd')">See crowd details</button>`,
+  foot:`<button class="btn primary" onclick="go('stalls')">Order food</button><button class="btn" onclick="go('track')">My orders</button>`};
+},
+crowd(){
+  const rows=STALLS.map(s=>'<div class="card row"><div><b>'+s.name+'</b><div class="muted">'+(s.open?'About '+s.ppl+' people in queue':'Closed for now')+'</div></div><b>'+(s.open?'~'+s.q+' min':'Closed')+'</b></div>').join('');
+  return {title:'Crowd status',crumb:'Home › Crowd status',
+  body:`<div class="card"><div class="muted">Food court crowd level</div><div class="big">Medium</div>${meter(2)}<div class="muted">Last updated: 12:14 pm</div></div>
+    <h2>Estimated queue per stall</h2>${rows}
+    <div class="card sel"><b>Suggested quieter time</b><div>Now until 12:30 pm, or after 1:30 pm. Ordering ahead can save you queue time.</div></div>`,
+  foot:`<button class="btn primary" onclick="go('stalls')">Order food ahead</button><button class="btn" onclick="back()">Back to home</button>`};
+},
+stalls(){
+  const rows=STALLS.map(s=>'<button class="card tap" onclick="openStall(\''+s.id+'\')"><div class="row"><b>'+s.name+'</b><span>'+(s.open?'Queue ~'+s.q+' min':'Closed')+'</span></div><div class="muted">'+(s.open?'Tap to see menu':'Tap for details')+'</div></button>').join('');
+  return {title:'Choose a stall',step:0,
+  body:`<p class="note">Pick a stall to see its menu. Queue times are estimates.</p>${rows}`,
+  foot:cartCount()?`<button class="btn primary" onclick="go('cart')">View cart (${cartCount()})</button>`:`<button class="btn" onclick="back()">Back to home</button>`};
+},
+menu(){
+  const st=stallById(S.stall);
+  const rows=MENU[S.stall].map((m,i)=>m[2]
+    ?'<div class="card row"><div><b>'+m[0]+'</b><div class="muted">'+fmt(m[1])+'</div><div><b>Sold out</b> for today</div></div><button class="btn sm" onclick="soldOut(\''+m[0]+'\')">Options</button></div>'
+    :'<div class="card row"><div><b>'+m[0]+'</b><div class="muted">'+fmt(m[1])+'</div></div><button class="btn sm" onclick="add('+i+')" aria-label="Add '+m[0]+'">Add</button></div>').join('');
+  return {title:st.name,step:0,
+  body:`<div class="card"><b>Queue time: ~${st.q} min</b><div class="muted">About ${st.ppl} people waiting</div></div>${rows}`,
+  foot:`<button class="btn primary" onclick="go('cart')">View cart (${cartCount()}) · ${fmt(subtotal())}</button><button class="btn" onclick="back()">Back to stalls</button>`};
+},
+cart(){
+  if(!S.cart.items.length){
+    return {title:'Your cart',step:1,body:`<div class="card"><b>Your cart is empty</b><p class="note">No rush. Pick a stall and add something when you are ready.</p></div>`,foot:`<button class="btn primary" onclick="go('stalls')">Browse stalls</button>`};
+  }
+  const rows=S.cart.items.map((it,i)=>'<div class="card row"><div><b>'+it.name+'</b><div class="muted">'+fmt(it.price)+' each</div></div><div class="qty"><button onclick="qty('+i+',-1)" aria-label="Fewer">&minus;</button><b>'+it.qty+'</b><button onclick="qty('+i+',1)" aria-label="More">+</button></div></div>').join('');
+  const opt=(m,t,d)=>'<button class="card tap '+(S.mode===m?'sel':'')+'" onclick="setMode(\''+m+'\')"><b>'+(S.mode===m?'✓ ':'○ ')+t+'</b><div class="muted">'+d+'</div></button>';
+  return {title:'Your cart',step:1,
+  body:`<div class="muted">From ${stallById(S.cart.stall).name}</div>${rows}
+    <div class="row" style="margin:6px 0 12px"><b>Subtotal</b><b>${fmt(subtotal())}</b></div>
+    <h2>How would you like it?</h2>
+    ${opt('pickup','Takeaway pickup','Collect at the stall counter. No fee.')}
+    ${opt('delivery','Delivery','To a table in front of your seminar room. Fee '+fmt(DELIVERY_FEE)+'.')}`,
+  foot:`<button class="btn primary" onclick="nextFromCart()">Continue</button><button class="btn" onclick="back()">Add more items</button>`};
+},
+pickup(){
+  const rows=SLOTS.map((t,i)=>'<button class="card tap '+(S.slot===i?'sel':'')+'" onclick="setSlot('+i+')"><div class="row"><b>'+(S.slot===i?'✓ ':'○ ')+t+'</b><span class="muted">'+(S.slot===i?'Selected':'Available')+'</span></div></button>').join('');
+  return {title:'Pickup time',step:2,
+  body:`<p class="note">Choose a time to collect. Your food is prepared ahead, so you can skip the queue.</p>${rows}<div class="card muted">Collect from: ${COUNTERS[S.cart.stall]} (${stallById(S.cart.stall).name})</div>`,
+  foot:`<button class="btn primary" onclick="openSheet()">Review and confirm</button><button class="btn" onclick="back()">Back to cart</button>`};
+},
+delivery(){
+  const opts=Object.keys(ROOMS).map(r=>'<option '+(r===S.room?'selected':'')+'>'+r+'</option>').join('');
+  return {title:'Delivery details',step:2,
+  body:`<label for="room"><b>Your seminar room</b></label>
+    <select id="room" onchange="setRoom(this.value)">${opts}</select>
+    <div class="card"><div class="muted">Delivery table location</div><b>${ROOMS[S.room]}</b></div>
+    <div class="card"><div class="row"><span>Estimated delivery</span><b>About 20 min (12:35 pm)</b></div><div class="row"><span>Delivery fee</span><b>${fmt(DELIVERY_FEE)}</b></div><hr style="margin:8px 0"><div class="row"><b>Total</b><b>${fmt(total())}</b></div></div>
+    <p class="note">Your location is shared with the delivery person only while your order is on its way. They will only be shown by first name.</p>`,
+  foot:`<button class="btn primary" onclick="openSheet()">Review and confirm</button><button class="btn" onclick="back()">Back to cart</button>`};
+},
+confirm(){
+  const o=S.order;
+  const how=o.mode==='pickup'?'Takeaway pickup, '+o.slot+', '+COUNTERS[o.stallId]:'Delivery to '+o.room+' ('+ROOMS[o.room].split(',')[0]+')';
+  return {title:'Order confirmed',step:3,
+  body:`<div class="card sel"><b>✓ Thank you! Your order is confirmed.</b><p>We will keep you updated. There is no need to rush.</p></div>
+    <div class="card"><div class="row"><span>Order number</span><b>${o.no}</b></div><div class="row"><span>Placed at</span><b>${o.time}</b></div><div class="row"><span>Mode</span><b>${o.mode==='pickup'?'Pickup':'Delivery'}</b></div><div class="muted" style="margin-top:6px">${how}</div><div class="muted">From ${o.stall} · Total ${fmt(o.total)}</div></div>`,
+  foot:`<button class="btn primary" onclick="go('track')">Track my order</button><button class="btn" onclick="S.hist=['home'];render()">Back to home</button>`};
+},
+track(){
+  const o=S.order,names=stepNames(o),isD=o.mode==='delivery';
+  const steps=names.map((n,i)=>{const c=i<o.stage?'done':i===o.stage?'cur':'';const st=i<o.stage?'Done':i===o.stage?'Now':'Next';return '<div class="step '+c+'"><div class="dot">'+(i<o.stage?'✓':i+1)+'</div><div><b>'+n+'</b><small>'+st+'</small></div></div>';}).join('');
+  let extra;
+  if(isD){
+    if(o.stage===2){extra=`<div class="map" role="img" aria-label="Static map placeholder with a pin"><div class="pin"></div><span class="lbl">${o.room} table</span><span class="cap">Map placeholder (static)</span></div><div class="card"><b>Delivery person: Daniel</b><div class="muted">Your location is shared only while your order is on its way.</div></div>`;}
+    else if(o.stage<2){extra=`<div class="card"><b>Location sharing has not started</b><div class="muted">It begins only when your order is on its way.</div></div>`;}
+    else{extra=`<div class="card"><b>Delivered to ${o.room} table</b><div class="muted">Location sharing has ended.</div></div>`;}
+  }else{
+    extra=o.stage===2?`<div class="card sel"><b>✓ Ready for collection</b><div>Pickup counter: ${COUNTERS[o.stallId]}</div><div class="muted">Show order number ${o.no}.</div></div>`
+      :o.stage===3?`<div class="card"><b>Collected</b><div class="muted">Enjoy your meal!</div></div>`
+      :`<div class="card"><b>Pickup at ${COUNTERS[o.stallId]}</b><div class="muted">Slot: ${o.slot}. We will show when it is ready.</div></div>`;
+  }
+  return {title:'Order tracking',crumb:'Home › My orders',
+  body:`<div class="card row"><div><b>Order ${o.no}</b><div class="muted">${o.stall} · ${isD?'Delivery':'Pickup'}</div></div></div>${steps}${extra}<p class="note">Prototype only: the button below moves the status forward for demo.</p>`,
+  foot:`<button class="btn primary" onclick="advance()">${o.stage<3?'Demo: next status':'Done, back to home'}</button><button class="btn" onclick="S.hist=['home'];render()">Back to home</button>`};
+},
+error(){
+  const e=S.err;
+  if(e.type==='closed'){
+    return {title:'Stall closed',crumb:'Order › Notice',body:`<div class="card sel"><b>${e.stall} is closed right now</b><p>It reopens at 1:00 pm. Nothing is wrong with your order.</p></div><p class="note">Next step: choose another open stall, or check how busy it is.</p>`,
+    foot:`<button class="btn primary" onclick="S.hist=['home','stalls'];render()">See open stalls</button><button class="btn" onclick="go('crowd')">Check crowd status</button>`};
+  }
+  return {title:'Item sold out',crumb:'Order › Notice',body:`<div class="card sel"><b>${e.item} is sold out for today</b><p>Sorry about that. Other dishes at ${e.stall} are available.</p></div><p class="note">Next step: pick another dish, or try a different stall.</p>`,
+  foot:`<button class="btn primary" onclick="back()">Choose another dish</button><button class="btn" onclick="S.hist=['home','stalls'];render()">See other stalls</button>`};
+}
+};
+function chart(){
+  return '<div class="chart" role="img" aria-label="Busy times bar chart">'+BUSY.map((b,i)=>'<div class="b '+(i===2?'now':'')+'">'+b[1]+'<span style="height:'+b[2]+'%"></span></div>').join('')+'</div><div class="labels">'+BUSY.map((b,i)=>'<div>'+(i===2?'Now':b[0])+'</div>').join('')+'</div>';
+}
+
+const STEPS=['Choose food','Cart','Details','Confirmed'];
+function render(keepScroll){
+  const id=S.hist[S.hist.length-1],sc=SCREENS[id](),y=$('body').scrollTop;
+  $('title').textContent=sc.title;
+  $('back').classList.toggle('hide',S.hist.length<2);
+  const prog=$('prog');
+  if(sc.step!==undefined){
+    prog.classList.remove('hide');
+    prog.innerHTML=STEPS.map((s,i)=>'<i class="'+(i<sc.step?'on':i===sc.step?'cur':'')+'"></i>').join('');
+    $('crumb').textContent='Step '+(sc.step+1)+' of 4: '+STEPS[sc.step];
+  }else{prog.classList.add('hide');$('crumb').textContent=sc.crumb;}
+  $('body').innerHTML=sc.body;$('foot').innerHTML=sc.foot||'';
+  $('sheet').classList.add('hide');
+  $('body').scrollTop=keepScroll===true?y:0;
+}
+render();
+</script>
+</body>
+</html>
