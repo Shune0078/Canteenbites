@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Food Court App Wireframe - Prototype v1</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#d9d9d9;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#111;display:flex;flex-direction:column;align-items:center;padding:16px}
+.tag{font-size:13px;margin-bottom:8px;border:2px solid #111;padding:2px 10px;background:#fff;font-weight:700}
+.phone{width:390px;height:844px;max-width:100%;background:#fff;border:3px solid #111;display:flex;flex-direction:column;position:relative;overflow:hidden;font-size:16px}
+.phone.large{font-size:20px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:4px 12px;border-bottom:2px solid #111;background:#eee;font-size:.8em}
+.top b{border:1px solid #111;padding:2px 8px;background:#fff}
+.txt{min-height:44px;min-width:44px;border:2px solid #111;background:#fff;font:inherit;font-weight:700;cursor:pointer;padding:0 10px}
+.head{display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #999}
+.head h1{font-size:1.15em;margin:0}
+.where{padding:8px 12px;font-size:.8em;background:#f3f3f3;border-bottom:1px solid #999}
+.steps{display:flex;gap:4px;margin-top:6px}
+.steps i{flex:1;height:8px;border:1px solid #111;background:#fff}
+.steps i.on{background:#555}
+main{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.box{border:2px solid #111;padding:12px;background:#fff}
+.box.g{background:#eee}
+.box.dash{border-style:dashed}
+h2{font-size:1.05em;margin:0 0 6px}
+p{margin:0 0 6px;line-height:1.4}
+.small{font-size:.85em;color:#333}
+.btn{display:block;width:100%;min-height:48px;border:2px solid #111;background:#fff;font:inherit;font-weight:700;text-align:center;padding:10px 12px;cursor:pointer;color:#111}
+.btn.pri{background:#222;color:#fff}
+.btn.sel{background:#ccc;outline:3px solid #111;outline-offset:-6px}
+.btn.off{background:#e4e4e4;color:#444;border-style:dashed}
+.btn.left{text-align:left}
+.row{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.row>.btn{width:auto;flex:1}
+.q{width:48px;flex:none!important;padding:0}
+.list{display:flex;flex-direction:column;gap:12px}
+.meter{display:flex;gap:4px;margin:6px 0}
+.meter i{flex:1;height:18px;border:2px solid #111;background:#fff}
+.meter i.on{background:#555}
+.chart{display:flex;align-items:flex-end;gap:6px;height:130px;border-bottom:2px solid #111;padding-top:6px}
+.chart div{flex:1;border:2px solid #111;background:#bbb;position:relative}
+.chart div.now{background:#555}
+.lab{display:flex;gap:6px;font-size:.75em;text-align:center}
+.lab span{flex:1}
+select{width:100%;min-height:48px;border:2px solid #111;font:inherit;background:#fff;padding:0 8px}
+.map{height:150px;border:2px dashed #111;background:repeating-linear-gradient(45deg,#f2f2f2,#f2f2f2 10px,#e6e6e6 10px,#e6e6e6 20px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.step{display:flex;gap:10px;align-items:center;border:2px solid #111;padding:10px;min-height:48px}
+.step.done{background:#ddd}
+.step.now{background:#fff;border-width:4px}
+.step.next{border-style:dashed;color:#333}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;background:#111;color:#fff;padding:12px;border:2px solid #fff;outline:2px solid #111;text-align:center;display:none;z-index:5}
+hr{border:0;border-top:1px solid #999;width:100%;margin:0}
+</style>
+</head>
+<body>
+<div class="tag">Prototype v1 - low-fidelity wireframe</div>
+<div class="phone" id="phone">
+  <div class="top"><b>Prototype v1</b><button class="txt" id="tsz" onclick="toggleText()" aria-label="Toggle larger text">Text size: A / A+</button></div>
+  <div class="head"><button class="txt" id="back" onclick="back()" aria-label="Back">&larr; Back</button><h1 id="title">Home</h1></div>
+  <div class="where" id="where"></div>
+  <main id="main"></main>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<script>
+const stalls=[
+ {id:'a',name:'Stall A - Rice & Noodles',wait:8,ppl:6,open:true,counter:'Counter A'},
+ {id:'b',name:'Stall B - Western',wait:3,ppl:2,open:true,counter:'Counter B'},
+ {id:'c',name:'Stall C - Drinks & Snacks',wait:12,ppl:9,open:true,counter:'Counter C'},
+ {id:'d',name:'Stall D - Halal Kitchen',wait:0,ppl:0,open:false,counter:'Counter D'}
+];
+const menus={
+ a:[['Chicken rice',4.5],['Fish soup noodles',5.0],['Vegetable fried rice',4.0,'soldout'],['Wanton noodles',4.8],['Iced lemon tea',1.8]],
+ b:[['Chicken chop',6.5],['Fish & chips',6.8],['Tomato pasta',5.9],['Side salad',3.0]],
+ c:[['Milk tea',2.8],['Kaya toast set',3.2],['Fruit cup',2.5],['Curry puff',1.5]],
+ d:[]
+};
+const rooms={'SR 2.1':'Table B1','SR 2.2':'Table B2','SR 3.4':'Table D2','SR 4.1':'Table E1','SR 4.5':'Table E3','SR 5.2':'Table F1'};
+const slots=['12:15 PM','12:30 PM','12:45 PM','1:00 PM','1:15 PM'];
+const bars=[['10',1],['11',2],['12',3],['1',3],['2',2],['3',1],['4',1]];
+const lvl=['','Low','Medium','High'];
+const DELIVERY_FEE=1.0;
+
+const S={stall:null,cart:[],mode:null,slot:null,room:'',err:null,hist:[],cur:'home',n:128,
+ order:{no:'A127',time:'12:05 PM',mode:'Delivery',stall:'Stall A',room:'SR 3.4',table:'Table D2',counter:'Counter A',status:1,total:6.3}};
+
+const $=id=>document.getElementById(id);
+const money=n=>'$'+n.toFixed(2);
+const sub=()=>S.cart.reduce((t,i)=>t+i.price*i.qty,0);
+const total=()=>sub()+(S.mode==='Delivery'?DELIVERY_FEE:0);
+const stallOf=id=>stalls.find(s=>s.id===id);
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2200)}
+function toggleText(){const l=$('phone').classList.toggle('large');toast(l?'Larger text is on':'Normal text size')}
+function go(name,opt={}){ if(!opt.replace&&name!==S.cur)S.hist.push(S.cur); if(name==='home')S.hist=[]; S.cur=name; render() }
+function back(){S.cur=S.hist.pop()||'home';render()}
+function steps(n){return '<div class="steps">'+[1,2,3,4,5].map(i=>'<i class="'+(i<=n?'on':'')+'"></i>').join('')+'</div><div>Step '+n+' of 5: '+['','Choose food','Cart','Pickup / delivery details','Confirmation','Track order'][n]+'</div>'}
+
+function levelBox(l){return '<div class="meter">'+[1,2,3].map(i=>'<i class="'+(i<=l?'on':'')+'"></i>').join('')+'</div>'}
+
+const screens={
+home(){return{title:'Home',where:'You are here: Home',html:`
+ <div class="box g"><h2>Food court crowd now</h2>
+  <p><b>&#9650;&#9650; MEDIUM</b> (2 of 3)</p>${levelBox(2)}
+  <p class="small">Updated 2 min ago. Seats are available.</p></div>
+ <div class="box"><h2>Busy times today</h2>
+  <div class="chart">${bars.map(b=>`<div class="${b[0]==='11'?'now':''}" style="height:${b[1]*30}px"></div>`).join('')}</div>
+  <div class="lab">${bars.map(b=>`<span>${b[0]}<br>${lvl[b[1]][0]}</span>`).join('')}</div>
+  <p class="small" style="margin-top:6px">L = Low, M = Medium, H = High. Dark bar = now (11 AM).</p></div>
+ <button class="btn" onclick="go('crowd')">See crowd details</button>
+ <button class="btn pri" onclick="go('stalls')">Order food</button>
+ <button class="btn" onclick="go('track')">My orders</button>`}},
+
+crowd(){return{title:'Crowd status',where:'You are here: Home &rsaquo; Crowd status',html:`
+ <div class="box g"><h2>Crowd level: MEDIUM</h2>${levelBox(2)}<p class="small">Last updated: 11:38 AM (2 min ago)</p></div>
+ <div class="box"><h2>Estimated queue per stall</h2><div class="list">
+  ${stalls.map(s=>`<div class="row"><span>${s.name}</span><b>${s.open?'~'+s.ppl+' people':'Closed'}</b></div>`).join('<hr>')}
+ </div></div>
+ <div class="box dash"><h2>A quieter time you could try</h2><p><b>1:30 - 2:00 PM</b> (Low)</p><p class="small">This is only a suggestion. Go whenever suits you.</p></div>
+ <button class="btn pri" onclick="go('stalls')">Order food</button>
+ <button class="btn" onclick="go('home')">Back to home</button>`}},
+
+stalls(){return{title:'Choose a stall',where:'You are here: Home &rsaquo; Order food',step:1,html:`
+ <div class="list">${stalls.map(s=>`
+  <button class="btn left" onclick="openStall('${s.id}')">${s.name}<br><span class="small">${s.open?'Queue time: ~'+s.wait+' min':'Closed right now'}</span></button>`).join('')}</div>
+ <p class="small">Queue times are estimates.</p>`}},
+
+menu(){const s=stallOf(S.stall);return{title:'Menu',where:'You are here: Home &rsaquo; Order food &rsaquo; '+s.name.split(' - ')[0],step:1,html:`
+ <div class="box g"><b>${s.name}</b><br><span class="small">Queue time: ~${s.wait} min</span></div>
+ <div class="list">${menus[s.id].map((m,i)=>`
+  <div class="box"><div class="row"><span><b>${m[0]}</b><br>${money(m[1])}</span>
+  ${m[2]?`<button class="btn off q" style="min-width:110px" onclick="soldOut(${i})">Sold out</button>`:`<button class="btn q" style="min-width:110px" onclick="addItem(${i})">Add</button>`}</div></div>`).join('')}</div>
+ <button class="btn pri" onclick="go('cart')">View cart (${S.cart.reduce((t,i)=>t+i.qty,0)} items)</button>`}},
+
+cart(){const e=!S.cart.length;return{title:'Your cart',where:'You are here: Order food &rsaquo; Cart',step:2,html:e?`
+ <div class="box dash"><p><b>Your cart is empty.</b></p><p class="small">Pick a stall to start. There is no rush.</p></div>
+ <button class="btn pri" onclick="go('stalls')">Choose a stall</button>`:`
+ <div class="list">${S.cart.map((c,i)=>`<div class="box"><div class="row"><span><b>${c.name}</b><br>${money(c.price)}</span>
+  <span class="row" style="gap:8px"><button class="btn q" onclick="qty(${i},-1)" aria-label="Less">-</button><b>${c.qty}</b><button class="btn q" onclick="qty(${i},1)" aria-label="More">+</button></span></div></div>`).join('')}</div>
+ <p class="row"><span>Subtotal</span><b>${money(sub())}</b></p>
+ <div class="box g"><h2>How would you like it?</h2><div class="list">
+  <button class="btn left ${S.mode==='Takeaway'?'sel':''}" onclick="setMode('Takeaway')">${S.mode==='Takeaway'?'&#10004; Selected: ':''}Takeaway pickup<br><span class="small">Collect from the stall counter</span></button>
+  <button class="btn left ${S.mode==='Delivery'?'sel':''}" onclick="setMode('Delivery')">${S.mode==='Delivery'?'&#10004; Selected: ':''}Delivery to seminar room<br><span class="small">Brought to a table outside your room</span></button></div></div>
+ <button class="btn pri" onclick="toDetails()">Next: ${S.mode==='Delivery'?'delivery details':S.mode==='Takeaway'?'pickup time':'choose an option above'}</button>`}},
+
+pickup(){const s=stallOf(S.stall);return{title:'Pickup',where:'You are here: Cart &rsaquo; Pickup details',step:3,html:`
+ <div class="box"><h2>1. Choose a pickup time</h2><div class="list">${slots.map(t=>`
+  <button class="btn left ${S.slot===t?'sel':''}" onclick="pickSlot('${t}')">${S.slot===t?'&#10004; ':'( ) '}${t}</button>`).join('')}</div></div>
+ <div class="box g"><h2>2. Review your order</h2>${summary(s)}
+  <p><b>Mode:</b> Takeaway pickup</p><p><b>Time:</b> ${S.slot||'Not chosen yet'}</p><p><b>Pickup at:</b> ${s.counter}</p>
+  <hr><p class="row"><b>Total</b><b>${money(total())}</b></p></div>
+ <p class="small">Payment method: [placeholder]. You are only charged after you confirm.</p>
+ <button class="btn pri" onclick="place()">Confirm and pay ${money(total())}</button>
+ <button class="btn" onclick="back()">Edit cart</button>`}},
+
+delivery(){const s=stallOf(S.stall),t=rooms[S.room];return{title:'Delivery',where:'You are here: Cart &rsaquo; Delivery details',step:3,html:`
+ <div class="box"><h2>1. Choose your seminar room</h2>
+  <select id="room" onchange="pickRoom(this.value)" aria-label="Seminar room"><option value="">Select a room</option>
+  ${Object.keys(rooms).map(r=>`<option ${S.room===r?'selected':''}>${r}</option>`).join('')}</select></div>
+ <div class="box dash"><p><b>Delivery table:</b> ${t?t+' (in front of '+S.room+')':'Choose a room to see the table'}</p>
+  <p><b>Estimated delivery:</b> ${t?'about 15 min after you order':'-'}</p><p><b>Delivery fee:</b> ${money(DELIVERY_FEE)}</p></div>
+ <div class="box g"><h2>2. Review your order</h2>${summary(s)}
+  <p><b>Mode:</b> Delivery</p><p><b>Subtotal:</b> ${money(sub())}</p><p><b>Delivery fee:</b> ${money(DELIVERY_FEE)}</p>
+  <hr><p class="row"><b>Total</b><b>${money(total())}</b></p></div>
+ <p class="small">Payment method: [placeholder]. You are only charged after you confirm.</p>
+ <button class="btn pri" onclick="place()">Confirm and pay ${money(total())}</button>
+ <button class="btn" onclick="back()">Edit cart</button>`}},
+
+confirm(){const o=S.order;return{title:'Order confirmed',where:'You are here: Order confirmation',step:4,html:`
+ <div class="box g"><h2>&#10004; Thank you! Your order is received.</h2><p>The stall has your order. You can relax - we will update you here.</p></div>
+ <div class="box"><p><b>Order number:</b> ${o.no}</p><p><b>Placed at:</b> ${o.time}</p><p><b>Mode:</b> ${o.mode==='Delivery'?'Delivery to '+o.room+' ('+o.table+')':'Takeaway pickup at '+o.time2}</p><p><b>Total:</b> ${money(o.total)}</p></div>
+ <button class="btn pri" onclick="go('track')">Track my order</button>
+ <button class="btn" onclick="go('home')">Back to home</button>`}},
+
+track(){const o=S.order,del=o.mode==='Delivery';
+ const names=del?['Order received','Preparing','On the way','Delivered']:['Order received','Preparing','Ready for collection'];
+ const last=names.length-1;
+ return{title:'Order tracking',where:'You are here: My orders &rsaquo; Order '+o.no,step:5,html:`
+ <div class="box g"><b>Order ${o.no}</b> - ${del?'Delivery':'Takeaway pickup'}<br><span class="small">${o.stall}</span></div>
+ <div class="list">${names.map((n,i)=>{const c=i<o.status?'done':i===o.status?'now':'next';return `<div class="step ${c}"><b>${c==='done'?'&#10004;':c==='now'?'&#9679;':'&#9675;'}</b><span>${n}</span><span class="small" style="margin-left:auto">${c==='done'?'Done':c==='now'?'Now':'Next'}</span></div>`}).join('')}</div>
+ ${del?(o.status<last?`<div class="map"><b>[ Static map placeholder ]</b><span>&#9679; Pin: ${o.table}, ${o.room}</span></div>
+  <p><b>Delivery person:</b> Aisha</p><p class="small">Your location is shared only while the delivery is active.</p>`
+  :`<div class="box dash"><p><b>Delivered to ${o.table}.</b></p><p class="small">Location sharing has ended.</p></div>`)
+ :(o.status===last?`<div class="box"><h2>Ready for collection</h2><p><b>Pickup counter:</b> ${o.counter}</p></div>`:`<p class="small">We will show "Ready for collection" here when it is done.</p>`)}
+ ${o.status<last?'<button class="btn" onclick="advance()">Refresh status</button>':'<p><b>All done. Enjoy your meal!</b></p>'}
+ <button class="btn" onclick="go('home')">Back to home</button>`}},
+
+error(){const e=S.err;return{title:'Notice',where:'You are here: Order food &rsaquo; Notice',html:`
+ <div class="box g"><h2>${e.kind==='closed'?'This stall is closed right now':'This item is sold out today'}</h2>
+  <p>${e.kind==='closed'?e.name+' is closed at the moment. It reopens at 2:00 PM.':e.name+' is sold out today. Other dishes are still available.'}</p>
+  <p class="small">Nothing was added to your cart.</p></div>
+ <p><b>What you can do next:</b></p>
+ <button class="btn pri" onclick="${e.kind==='closed'?"go('stalls',{replace:true})":"go('menu',{replace:true})"}">${e.kind==='closed'?'See open stalls':'See other dishes'}</button>
+ <button class="btn" onclick="go('crowd')">Check crowd levels</button>
+ <button class="btn" onclick="go('home')">Back to home</button>`}}
+};
+
+function summary(s){return '<p><b>'+s.name+'</b></p>'+S.cart.map(c=>'<p class="row"><span>'+c.qty+' x '+c.name+'</span><span>'+money(c.price*c.qty)+'</span></p>').join('')}
+
+function openStall(id){const s=stallOf(id);if(!s.open){S.err={kind:'closed',name:s.name.split(' - ')[0]};go('error');return}
+ if(S.stall!==id){if(S.cart.length)toast('Started a new cart for '+s.name.split(' - ')[0]);S.cart=[];S.mode=null}S.stall=id;go('menu')}
+function addItem(i){const m=menus[S.stall][i],f=S.cart.find(c=>c.name===m[0]);if(f)f.qty++;else S.cart.push({name:m[0],price:m[1],qty:1});render();toast('Added: '+m[0])}
+function soldOut(i){S.err={kind:'soldout',name:menus[S.stall][i][0]};go('error')}
+function qty(i,d){const c=S.cart[i];c.qty+=d;if(c.qty<=0){S.cart.splice(i,1);toast('Removed: '+c.name)}else toast(c.name+': '+c.qty);render()}
+function setMode(m){S.mode=m;render();toast(m==='Delivery'?'Delivery selected':'Takeaway pickup selected')}
+function toDetails(){if(!S.mode){toast('Please choose takeaway or delivery first');return}go(S.mode==='Delivery'?'delivery':'pickup')}
+function pickSlot(t){S.slot=t;render();toast('Pickup time set: '+t)}
+function pickRoom(r){S.room=r;render();if(r)toast('Room selected: '+r)}
+function place(){
+ if(S.mode==='Takeaway'&&!S.slot){toast('Please choose a pickup time first');return}
+ if(S.mode==='Delivery'&&!S.room){toast('Please choose a seminar room first');return}
+ const s=stallOf(S.stall);
+ S.order={no:'A'+(S.n++),time:'12:10 PM',mode:S.mode,stall:s.name.split(' - ')[0],room:S.room,table:rooms[S.room],counter:s.counter,time2:S.slot,status:0,total:total()};
+ S.cart=[];S.mode=null;S.slot=null;S.room='';
+ go('confirm',{replace:true});toast('Order placed successfully')}
+function advance(){const max=S.order.mode==='Delivery'?3:2;if(S.order.status<max)S.order.status++;render();toast('Status updated')}
+
+function render(){
+ const sc=screens[S.cur]();
+ $('title').textContent=sc.title;$('where').innerHTML=sc.where+(sc.step?steps(sc.step):'');
+ $('main').innerHTML=sc.html;$('main').scrollTop=0;
+ $('back').style.visibility=S.cur==='home'?'hidden':'visible';
+}
+render();
+</script>
+</body>
+</html>
